@@ -1,4 +1,4 @@
-###Features include:
+####Features include:
 1.  Construct shapes using appropriate tools
 2.  Create connected shapes group
 3.  Measure/construct angles and distances (segment with given length)
@@ -7,7 +7,7 @@
 6.  Transform and observe dynamically applied changes to shape/shapes group
 
 
-###Features to be added:
+####Features to be added:
 1.  3D view posibility
 2.  Tools for constructing 3D shapes
 3.  Full support on mobile devices
@@ -15,3 +15,5 @@
 
 ####Technologies used:
 HTML5 canvas, javascript(with some ES6 features)
+
+To try it live go <a target="blank" href="http://ampawd.github.io/interactive-geometry/">here</a>
