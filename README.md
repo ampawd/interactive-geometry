@@ -4,7 +4,7 @@
 3.  Measure/construct angles and distances (segment with given length)
 4.  Construct parallel, perpendicular and bisector lines.
 5.  Dynamically change shape's attributes (opacity, fill color)
-6.  Transform and observe dynamically applied changes to shape/hapes group
+6.  Transform and observe dynamically applied changes to shape/shapes group
 
 
 ###Features to be added:
@@ -13,5 +13,5 @@
 3.  Full support on mobile devices
 4.  2D and 3D coordinate system
 
-Technologies used:
+####Technologies used:
 HTML5 canvas, javascript(with some ES6 features)
