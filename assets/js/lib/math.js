@@ -497,7 +497,7 @@
         if (alen < 1e-7 || blen < 1e-7) {
             return 0.0;
         }
-        return Math.acos(dot / (a.length()*b.length()));
+        return Math.acos(dot / (alen*blen));
     }
     
     Global.math = Global.math || {
