@@ -186,7 +186,7 @@
         let points = this.points, distancePoints, midPoint;
         for (let entry of this.distanceTextShapes) {
             distancePoints = this.distancePoints.get(entry[0]);
-            entry[1].text = distancePoints[1].sub(distancePoints[0]).length().toFixed(2);
+            entry[1].text = distancePoints[1].sub(distancePoints[0]).length().toFixed(0);
             midPoint = distancePoints[0].add(distancePoints[1]).multScalar(0.5).add(new Vec2(0, -15));
             entry[1].translate(midPoint);
         }
@@ -199,7 +199,7 @@
         let points = this.points, anglePoints;
         for (let entry of this.angleTextShapes) {
             anglePoints = this.anglePoints.get(entry[0]);
-            entry[1].text = (getAngle( anglePoints[0], anglePoints[1], anglePoints[2]) * radToDeg).toFixed(2);
+            entry[1].text = (getAngle( anglePoints[0], anglePoints[1], anglePoints[2]) * radToDeg).toFixed(0);
             entry[1].translate(anglePoints[1].multScalar(1.02));
         }
         this.midpoints.forEach(function(value) {

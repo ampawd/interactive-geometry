@@ -165,8 +165,8 @@
                     point.set(entry[1].points[i].x, entry[1].points[i].y);
                     //point = entry[1].points[i];
                     return entry[1].points[i];
-                }    
-            }            
+                }
+            }        
         }
         return 0;
     };

@@ -37,7 +37,8 @@
             cnvOffsetX = cnvParams.cnvOffsetX,
             cnvOffsetY = cnvParams.cnvOffsetY,
             geometryEngine = new GeometryEngine(),
-            angle = 0,  points = [];
+            angle = 0,
+            points = [];
         return {
             initConstruction: function() {
                 let v = new Point(mdown.copy(), 2, "#000");
@@ -94,13 +95,13 @@
                     case "ruler":
                         if (clicks === 1) {
                             let midpoint = points[0].add(mmove).multScalar(0.5).add(new Vec2(0, -15));
-                            shape = new Text2d(mmove.sub(points[0]).length().toFixed(2), "10pt arial", midpoint);
+                            shape = new Text2d(mmove.sub(points[0]).length().toFixed(0), "10pt arial", midpoint);
                         }
                     break;
                     case "protractor":
                         if (clicks === 2) {
                             angle = getAngle(points[0], points[1], mmove) * radToDeg;
-                            shape = new Text2d(angle.toFixed(2), "13pt arial", points[1].multScalar(1.02));
+                            shape = new Text2d(angle.toFixed(0), "13pt arial", points[1].multScalar(1.02));
                         }
                     break;
                 }
@@ -126,18 +127,17 @@
                             points[1].points.push(points[1]);
                             shapes.set(points[1].getID(), points[1]);
                         }
-                        shape.text = points[1].sub(points[0]).length().toFixed(2);
-                    
+                        shape.text = points[1].sub(points[0]).length().toFixed(0);                    
                         for (let i = 0, id; i < 2; i++) {
                             id = geometryEngine.getShapeIDByPoint(points[i]);                       
                             measuringShape = shapes.get(id);
                             measuringShape.distanceTextShapes.set(shape.getID(), shape);
                             measuringShape.distancePoints.set(shape.getID(), points); 
-                        }                        
+                        }
                     break;
                     case "protractor":
                         angle = getAngle(points[0], points[1], points[2]) * radToDeg;
-                        shape.text = angle.toFixed(2);
+                        shape.text = angle.toFixed(0);
                         for (let i = 0, id; i < 3; i++) {
                             id = geometryEngine.getShapeIDByPoint(points[i]);                       
                             measuringShape = shapes.get(id);
@@ -147,7 +147,7 @@
                     break;
                 }
                 clicks = 0; points = [];
-                return shape;
+                return shape;   //  text shape
             },
             constructionNextStep: function() {
                 clicks++;
@@ -276,7 +276,10 @@
             cnvW = cnvParams.w, cnvH = cnvParams.h,
             fixedLength = 0,
             _2PointsIndexes = [],
-            advancedShapes = [], points = [], det = 0, alpha = 0;
+            advancedShapes = [],
+            points = [],
+            det = 0,
+            alpha = 0;
         return {
             constructionStarted: function() {
                 return clicks === 0;
@@ -455,10 +458,8 @@
                                 shape.points[0].radius = 0;
                                 shape.points[1].isVisible = false;
                                 shape.points[1].radius = 0;
-                                shape.rotatable = false;
-                            
-                            shape.parallel = true;
-                                                    
+                                shape.rotatable = false;                            
+                            shape.parallel = true;                                                    
                             if (subtoolName === "perpendicularline") {
                                 shape.rotate(pp1, Math.PI * 0.5);
                                 shape.perpendicular = true;
