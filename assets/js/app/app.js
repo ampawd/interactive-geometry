@@ -16,6 +16,8 @@
 		
 		log = Global.utils.log,
 		getActualWinWidth = Global.utils.getActualWinWidth,
+		radToDeg = Global.math.radToDeg,
+        degToRad = Global.math.degToRad,
 		Shape = Global.shapes.Shape,
 		Line = Global.shapes.Line,
         Ray = Global.shapes.Ray,
@@ -42,8 +44,10 @@
 	
 		cnvParams.cnv = $('#canvas2d');
 		cnvParams.ctx = cnvParams.cnv[0].getContext('2d');
-		cnvParams._3DRenderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();	
+		cnvParams._3DRenderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+		cnvParams.cnv3D = $(cnvParams._3DRenderer.domElement);
 		cnvParams.scene = new THREE.Scene();
+		cnvParams._3DviewEnabled = false;
 		
 		cnvParams.transformHistory = [];
 		cnvParams.historyIndex = 0;
@@ -77,6 +81,48 @@
 		cnvParams._3DRenderer.setSize(0, 0);
     }
 	
+	function ArrowedVector(from, to, color, addCircle, unit) {
+		var parent = new THREE.Object3D(),
+			headLength = 25,
+			headWidth = 7,
+			direction = to.clone().sub(from),
+			length = direction.length(),
+			magnitudeVec = new THREE.ArrowHelper(direction.normalize(), from, unit ? 1 : length, color, headLength, headWidth );
+			parent.add( magnitudeVec );
+			if (addCircle) {
+				parent.add( circle(10, from.x, from.y, from.z, color) );				
+			}
+		return parent;
+	}
+	
+	function buildSegment(src, dst, colorHex, dashed) {
+		var geom = new THREE.Geometry(), mat, axis;	
+		if (dashed) {
+			mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 5 });
+			geom.vertices.push(src.clone());
+			geom.vertices.push(dst.clone());
+			geom.computeLineDistances();			// This one is SUPER important, otherwise dashed lines will appear as simple plain lines	
+			axis = new THREE.Line(geom, mat, THREE.LinePieces);
+		} else {
+			mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
+			axis = ArrowedVector(src, dst, colorHex, 0, 0);
+		}
+		
+		return axis;
+	}
+	
+	function createCoordinateSystem(length, position, colorVector) {
+		var axes = new THREE.Object3D();		
+		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), colorVector.x,  false ) ); // +X
+		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), colorVector.x, false) ); 	// -X
+		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), colorVector.y,  false ) ); // +Y
+		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, -length, 0 ), colorVector.y, false ) ); // -Y
+		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, length ), colorVector.z,  false ) ); // +Z
+		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -length ), colorVector.z, false ) ); // -Z		
+		axes.position.set(position && position.x || 0, position && position.y || 0, position && position.z || 0);	
+		return axes;
+	}
+	
 	function setUpGlobalEvents() {
 		$(window).resize(initParams);
 		let factor = 1.7, fullWidth = cnvParams.w;
@@ -95,6 +141,57 @@
 				cnvParams._3DRenderer.render(cnvParams.scene, cnvParams.camera);
 				$(cnvParams._3DRenderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
 				
+				var scene = cnvParams.scene;
+				var	camera = cnvParams.camera;
+				var	renderer = cnvParams._3DRenderer;				
+				var geom = new THREE.BoxGeometry(300, 300, 300);
+				var mat = new THREE.MeshLambertMaterial({color: 0xf00000});
+				var cube = new THREE.Mesh(geom, mat);
+				var light1 = new THREE.PointLight(0xFFFFFF, 1, 5000);
+				var light2 = new THREE.PointLight(0xFFFFFF, 1, 5000);
+				var coordSystem = createCoordinateSystem(newWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0xff0000, 0x00ff00, 0x0000ff));
+				
+				light1.position.set(500, 500, 700);
+				light1.intensity = 1;
+				light2.position.set(-500, -500, 700);
+				light2.intensity = 1;
+				
+				scene.children = [];
+				scene.add(light1);	
+				scene.add(light2);
+				scene.add(coordSystem);
+				
+				coordSystem.rotation.set(0.4, 0.5, 0);
+				renderer.render(scene, camera);
+				cnvParams.cnv3D.off("mousedown");
+				cnvParams.cnv3D.off("mousemove");
+				cnvParams.cnv3D.off("mouseup");
+				cnvParams.cnv3D.mousedown(function(e) {
+					var mouse = new Vec2(), lastX, lastY;
+						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
+						lastX = mouse.x,
+						lastY = mouse.y;
+					
+					cnvParams.cnv3D.mousemove(function(e) {
+						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
+						var diffX = mouse.x - lastX;
+						var diffY = mouse.y - lastY;
+						
+						coordSystem.rotation.x += diffY / 200;
+						coordSystem.rotation.y += diffX / 200;
+						
+						renderer.render(scene, camera);
+						lastX = mouse.x;
+						lastY = mouse.y;
+					});
+					
+					cnvParams.cnv3D.mouseup(function(e) {
+						cnvParams.cnv3D.off("mousemove");
+						cnvParams.cnv3D.off("mouseup");
+					}); 
+					
+				});
+				
             } else {
 				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent)/100 );
 				cnvParams.w = cnvParams.cnv.width();				
@@ -104,6 +201,7 @@
 			renderShapes();
 		});
 		
+		//	spectrum events handling
 		$("#selected-shape-colorpicker").spectrum({
 			color: "#000",
 			showButtons: false,
@@ -323,45 +421,45 @@
 			Line.count = Ray.count = Segment.count = Vector.count = Polygon.count = 
 			Triangle.count = RegularPolygon.count = Circle.count = Point.count = Text2d.count = 0;
 		});
-		uiParams.undoBtn.click(function() {
-			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-			if (cnvParams.historyIndex >= cnvParams.transformHistory.length) {
-                cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
-            }
-			if (cnvParams.historyIndex >= 0) {
-				let historyData = cnvParams.transformHistory[cnvParams.historyIndex--];
-				setCurrentLoopStep(historyData);	
-            } else {
-				//let lastShapeID = shapes.getLastKey();
-				//if (lastShapeID) {
-				//	deletedShapes.set(lastShapeID, shapes.get(lastShapeID));					
-				//	//fix detaching
-				//	//for (let entry of shapes.get(lastShapeID).connectedShapes) {
-				//	//	entry[1].detach(lastShapeID);						
-				//	//}
-				//	shapes.delete(lastShapeID);
-				//}
-			}
-			renderShapes();
-		});
-		
-		uiParams.redoBtn.click(function() {
-			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-			if (cnvParams.historyIndex < 0) {
-                cnvParams.historyIndex = 1;
-            }			
-			if (cnvParams.historyIndex < cnvParams.transformHistory.length) {
-				let historyData = cnvParams.transformHistory[cnvParams.historyIndex++];				
-				setCurrentLoopStep(historyData);  
-            } else {
-				//let lastShapeID = deletedShapes.getLastKey();
-				//if (lastShapeID) {
-				//	shapes.set( lastShapeID, deletedShapes.get(lastShapeID) );
-				//	deletedShapes.delete(lastShapeID);
-				//}
-            }
-			renderShapes();
-		});
+//		uiParams.undoBtn.click(function() {
+//			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+//			if (cnvParams.historyIndex >= cnvParams.transformHistory.length) {
+//                cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
+//            }
+//			if (cnvParams.historyIndex >= 0) {
+//				let historyData = cnvParams.transformHistory[cnvParams.historyIndex--];
+//				setCurrentLoopStep(historyData);	
+//            } else {
+//				//let lastShapeID = shapes.getLastKey();
+//				//if (lastShapeID) {
+//				//	deletedShapes.set(lastShapeID, shapes.get(lastShapeID));					
+//				//	//fix detaching
+//				//	//for (let entry of shapes.get(lastShapeID).connectedShapes) {
+//				//	//	entry[1].detach(lastShapeID);						
+//				//	//}
+//				//	shapes.delete(lastShapeID);
+//				//}
+//			}
+//			renderShapes();
+//		});
+//		
+//		uiParams.redoBtn.click(function() {
+//			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+//			if (cnvParams.historyIndex < 0) {
+//                cnvParams.historyIndex = 1;
+//            }			
+//			if (cnvParams.historyIndex < cnvParams.transformHistory.length) {
+//				let historyData = cnvParams.transformHistory[cnvParams.historyIndex++];				
+//				setCurrentLoopStep(historyData);  
+//            } else {
+//				//let lastShapeID = deletedShapes.getLastKey();
+//				//if (lastShapeID) {
+//				//	shapes.set( lastShapeID, deletedShapes.get(lastShapeID) );
+//				//	deletedShapes.delete(lastShapeID);
+//				//}
+//            }
+//			renderShapes();
+//		});
 	}
 	
 	function emphasizeShapes(e) {
@@ -474,7 +572,7 @@
             }
 			
 			if (!$.isEmptyObject(transformProps)) {
-				saveCurrentTransformStep(true);
+				//saveCurrentTransformStep(true);
 				cnvParams.cnv.css({"cursor": "pointer"});
 				cnvParams.cnv.mousemove(function(e) {
 					mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
@@ -487,7 +585,7 @@
 					cnvParams.cnv.off('mousemove');
 					cnvParams.cnv.off('mouseup');
 					cnvParams.cnv.mousemove(emphasizeShapes);
-					saveCurrentTransformStep();
+					//saveCurrentTransformStep();
 					useOldTransformProps = 0;					
 					if (selShape && connectedShapesGroup && connectedShapesGroup.size > 0) {
 						for (let i = 0; i < selShape.points.length; i++) {
