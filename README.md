@@ -5,13 +5,11 @@
 4.  Construct parallel, perpendicular and bisector lines.
 5.  Dynamically change shape's attributes (opacity, fill color)
 6.  Transform and observe dynamically applied changes to shape/shapes group
-
+7.  View constructed shape in 3D coordinate system
 
 ####Features to be added:
-1.  3D view posibility
-2.  Tools for constructing 3D shapes
-3.  Full support on mobile devices
-4.  2D and 3D coordinate system
+1.  Tools for constructing and transforming 3D shapes
+2.  Full support on mobile devices
 
 ####Technologies used:
 HTML5 canvas, javascript(with some ES6 features)

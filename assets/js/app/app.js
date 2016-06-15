@@ -8,6 +8,8 @@
 	let cnvParams,
 		uiParams,
 		shapes,
+		shapes_3D,
+		initial3DShapesRotation,
 		deletedShapes,
 		percent,
 		actualWindowWidth,
@@ -29,13 +31,14 @@
         Circle = Global.shapes.Circle,
         Point = Global.shapes.Point,
         Text2d = Global.shapes.Text2d,
+		createCoordinateSystem = Global.shapes.createCoordinateSystem,
 		Vec2 = Global.math.Vec2,
 		GeometryEngine = Global.engine.GeometryEngine,
 		shapeConstructorFactory = Global.tools.shapeConstructorFactory;
 		
 	
 	function initParams() {
-		percent = 15;
+		percent = 5;
 		actualWindowWidth = getActualWinWidth();
 		documentHeight = $(document).height();
 
@@ -44,8 +47,8 @@
 	
 		cnvParams.cnv = $('#canvas2d');
 		cnvParams.ctx = cnvParams.cnv[0].getContext('2d');
-		cnvParams._3DRenderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
-		cnvParams.cnv3D = $(cnvParams._3DRenderer.domElement);
+		cnvParams.renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+		cnvParams.cnv3D = $(cnvParams.renderer.domElement);
 		cnvParams.scene = new THREE.Scene();
 		cnvParams._3DviewEnabled = false;
 		
@@ -76,109 +79,79 @@
 	
 	function setUp3D() {
 		$(uiParams._3dviewCheckBox).attr("checked", false);
-		$("#render-canvases").append(cnvParams._3DRenderer.domElement);
+		$("#render-canvases").append(cnvParams.renderer.domElement);
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
-		cnvParams._3DRenderer.setSize(0, 0);
-    }
+		cnvParams.renderer.setSize(0, 0);
+    }	
 	
-	function ArrowedVector(from, to, color, addCircle, unit) {
-		var parent = new THREE.Object3D(),
-			headLength = 25,
-			headWidth = 7,
-			direction = to.clone().sub(from),
-			length = direction.length(),
-			magnitudeVec = new THREE.ArrowHelper(direction.normalize(), from, unit ? 1 : length, color, headLength, headWidth );
-			parent.add( magnitudeVec );
-			if (addCircle) {
-				parent.add( circle(10, from.x, from.y, from.z, color) );				
-			}
-		return parent;
-	}
-	
-	function buildSegment(src, dst, colorHex, dashed) {
-		var geom = new THREE.Geometry(), mat, axis;	
-		if (dashed) {
-			mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 5 });
-			geom.vertices.push(src.clone());
-			geom.vertices.push(dst.clone());
-			geom.computeLineDistances();			// This one is SUPER important, otherwise dashed lines will appear as simple plain lines	
-			axis = new THREE.Line(geom, mat, THREE.LinePieces);
-		} else {
-			mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
-			axis = ArrowedVector(src, dst, colorHex, 0, 0);
-		}
+	function prepare3DShapes() {
+		shapes.forEach(function(shape, shapeID) {
+			if (!shapes_3D.has(shapeID) && shape.className !== "Text2d") {
+				var shape_3D = shape.createMeshFromThis();
+				shapes_3D.set(shapeID, shape_3D);
+            }
+		});
 		
-		return axis;
-	}
-	
-	function createCoordinateSystem(length, position, colorVector) {
-		var axes = new THREE.Object3D();		
-		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), colorVector.x,  false ) ); // +X
-		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), colorVector.x, false) ); 	// -X
-		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), colorVector.y,  false ) ); // +Y
-		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, -length, 0 ), colorVector.y, false ) ); // -Y
-		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, length ), colorVector.z,  false ) ); // +Z
-		axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -length ), colorVector.z, false ) ); // -Z		
-		axes.position.set(position && position.x || 0, position && position.y || 0, position && position.z || 0);	
-		return axes;
-	}
+		cnvParams.scene.rotation.set(initial3DShapesRotation.x, initial3DShapesRotation.y, initial3DShapesRotation.z);
+    }
 	
 	function setUpGlobalEvents() {
 		$(window).resize(initParams);
-		let factor = 1.7, fullWidth = cnvParams.w;
+		let factor = 2, fullWidth = cnvParams.w;
 				
 		uiParams._3dviewCheckBox.click(function(e) {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			if (uiParams._3dviewCheckBox.is(':checked')) {
+				cnvParams._3DviewEnabled = true;
 				cnvParams.cnv.attr("width", actualWindowWidth/factor - ((actualWindowWidth/factor)*percent)/100 );
 				cnvParams.w = cnvParams.cnv.width();		
-				
 				let newWidth = fullWidth - cnvParams.w - 5;
 				cnvParams.camera = new THREE.OrthographicCamera(-newWidth, newWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
-				cnvParams._3DRenderer.setSize(newWidth, cnvParams.h);
-				cnvParams._3DRenderer.setClearColor(0xffffff, 1);
+				cnvParams.renderer.setSize(newWidth, cnvParams.h);
+				cnvParams.renderer.setClearColor(0xffffff, 1);
 				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));
-				cnvParams._3DRenderer.render(cnvParams.scene, cnvParams.camera);
-				$(cnvParams._3DRenderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
-				
+				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+				$(cnvParams.renderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
 				var scene = cnvParams.scene;
 				var	camera = cnvParams.camera;
-				var	renderer = cnvParams._3DRenderer;				
-				var geom = new THREE.BoxGeometry(300, 300, 300);
-				var mat = new THREE.MeshLambertMaterial({color: 0xf00000});
-				var cube = new THREE.Mesh(geom, mat);
-				var light1 = new THREE.PointLight(0xFFFFFF, 1, 5000);
-				var light2 = new THREE.PointLight(0xFFFFFF, 1, 5000);
+				var	renderer = cnvParams.renderer;
+				var light1 = new THREE.PointLight(0xffffff, 1, 5000);
+				var light2 = new THREE.PointLight(0xffffff, 1, 5000);
 				var coordSystem = createCoordinateSystem(newWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0xff0000, 0x00ff00, 0x0000ff));
-				
+				light1.name = "light1"; light2.name = "light2";
+				coordSystem.name = "coordSystem";
 				light1.position.set(500, 500, 700);
 				light1.intensity = 1;
 				light2.position.set(-500, -500, 700);
 				light2.intensity = 1;
-				
-				scene.children = [];
 				scene.add(light1);	
 				scene.add(light2);
 				scene.add(coordSystem);
 				
-				coordSystem.rotation.set(0.4, 0.5, 0);
-				renderer.render(scene, camera);
+				prepare3DShapes();
+				renderer.render(scene, camera);				
 				cnvParams.cnv3D.off("mousedown");
 				cnvParams.cnv3D.off("mousemove");
 				cnvParams.cnv3D.off("mouseup");
+				
 				cnvParams.cnv3D.mousedown(function(e) {
-					var mouse = new Vec2(), lastX, lastY;
+					var mouse = new Vec2(),
+						lastX, lastY;
 						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
-						lastX = mouse.x,
-						lastY = mouse.y;
+					var lastX = mouse.x,
+						lastY = mouse.y,
+						diffX, diffY,
+						rx, ry;
 					
 					cnvParams.cnv3D.mousemove(function(e) {
 						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
-						var diffX = mouse.x - lastX;
-						var diffY = mouse.y - lastY;
+						diffX = mouse.x - lastX;
+						diffY = mouse.y - lastY;						
+						rx = diffY / 200;
+						ry = diffX / 200;
 						
-						coordSystem.rotation.x += diffY / 200;
-						coordSystem.rotation.y += diffX / 200;
+						scene.rotation.x += rx;
+						scene.rotation.y += ry;
 						
 						renderer.render(scene, camera);
 						lastX = mouse.x;
@@ -188,14 +161,18 @@
 					cnvParams.cnv3D.mouseup(function(e) {
 						cnvParams.cnv3D.off("mousemove");
 						cnvParams.cnv3D.off("mouseup");
-					}); 
-					
+						initial3DShapesRotation.set(scene.rotation.x, scene.rotation.y, 0);
+					});					
 				});
 				
             } else {
-				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent)/100 );
+				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
+				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
+				cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
+				cnvParams._3DviewEnabled = false;
+				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent) / 100 );
 				cnvParams.w = cnvParams.cnv.width();				
-				cnvParams._3DRenderer.setSize(0, 0);
+				cnvParams.renderer.setSize(0, 0);
 			}
 			
 			renderShapes();
@@ -258,6 +235,12 @@
 						entry[1].connectedShapes.clear();
                         geometryEngine.createConnectedShapesGroup(entry[1]);
                     }
+					
+					if (shapes_3D.has(selID)) {
+						shapes_3D.delete(selID);
+						cnvParams.scene.remove(cnvParams.scene.getObjectByName(selID));
+						cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+                    }
 					renderShapes();
 					cnvParams.selectedShape = 0;
 					disableSelectedShapeAttribControls();
@@ -278,13 +261,17 @@
 	
 	function initShapes() {
 		shapes 		  = new Map();
+		shapes_3D	  = new Map();
 		deletedShapes = new Map();
+		initial3DShapesRotation = new THREE.Vector3(0.4, 0.5, 0);
 		Shape.prototype.ctx = cnvParams.ctx;
 		Shape.prototype.cnv = cnvParams.cnv;
 		Shape.prototype.cnvW = cnvParams.w;
 		Shape.prototype.cnvH = cnvParams.h;
 		Shape.prototype.cnvOffsetX = cnvParams.cnvOffsetX;
 		Shape.prototype.cnvOffsetY = cnvParams.cnvOffsetY;
+		Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
+		Shape.prototype.scene = cnvParams.scene;
 		Shape.prototype.geometryEngine = new GeometryEngine();
 	}
 	
@@ -415,7 +402,12 @@
 			resetUIToDefaults();
 			disableSelectedShapeAttribControls();
 			offHandlers();
+			shapes.forEach(function(sh, id) {
+				cnvParams.scene.remove(cnvParams.scene.getObjectByName(id));	
+			});
+			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 			shapes.clear();
+			shapes_3D.clear();
 			deletedShapes.clear();
 			cnvParams.transformHistory = [];
 			Line.count = Ray.count = Segment.count = Vector.count = Polygon.count = 
@@ -521,8 +513,11 @@
                 } else if (cnvParams.selectedShape.className === "Point") {
 					cnvParams.selectedShape.setBoundaryWidth(4);
 				}
-				enableSelectedShapeAttribControls();
+				enableSelectedShapeAttribControls();			
+				prepare3DShapes();
 				//console.log(shapes);
+				//console.log(shapes_3D);
+				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				renderShapes();
 				return;
 			}
@@ -611,10 +606,14 @@
 		cnvParams.cnv.off("mousedown");
 		cnvParams.cnv.off("mousemove");	
 		cnvParams.cnv.off("mouseup");
+		//cnvParams.cnv3D.off("mousedown");
+		//cnvParams.cnv3D.off("mousemove");
+		//cnvParams.cnv3D.off("mouseup");
 		cnvParams.cnv.off("click");
 		uiParams.subTool.off("click");
 	}
 	
+	//	renders shapes to 2D canvas only
 	function renderShapes() {
 		shapes.forEach(function(shape, shapeID) {
 			shape.render();

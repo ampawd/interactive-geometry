@@ -505,7 +505,7 @@
     function getPolygonConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let renderParams = {
             strokeStyle: "#000",
-            fillColor: "#ccc",
+            fillColor: "#00f",
             lineWidth: 1
         },
         points = [], currentPoint = 0,
