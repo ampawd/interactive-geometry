@@ -272,6 +272,7 @@
 		Shape.prototype.cnvOffsetY = cnvParams.cnvOffsetY;
 		Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
 		Shape.prototype.scene = cnvParams.scene;
+		Shape.prototype.shapes = shapes;
 		Shape.prototype.geometryEngine = new GeometryEngine();
 	}
 	
@@ -573,6 +574,7 @@
 					mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 					geometryEngine.transformShapes(transformProps, mdown, mmove);
+					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
 				});
 				cnvParams.cnv.mouseup(function() {

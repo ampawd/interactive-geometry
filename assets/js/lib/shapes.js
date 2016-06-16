@@ -356,20 +356,33 @@
         var lineGeometry = new THREE.Geometry(),
             lineMaterial,
             lineMesh, parent;
+        parent = new THREE.Object3D();
         lineGeometry.vertices.push(new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         lineGeometry.vertices.push(new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
         lineGeometry.vertices.push(new THREE.Vector3(this.points[2].x, 0, this.points[2].y));
-        lineGeometry.vertices.push(new THREE.Vector3(this.points[3].x, 0, this.points[3].y));        
+        lineGeometry.vertices.push(new THREE.Vector3(this.points[3].x, 0, this.points[3].y));  
         lineMaterial = new THREE.LineBasicMaterial({color: new THREE.Color(this.color).getHex()});
         lineMesh = new THREE.Line(lineGeometry, lineMaterial);
-        parent = new THREE.Object3D();
-        parent.add(lineMesh);
+        lineMesh.name = "child" + this.getID();
         var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
+        parent.add(lineMesh);
         parent.name = this.getID();
+        var _this = this;
+        this.shapes.forEach(function(shape, shapeID) {
+            if (_this.getID() !== shapeID) {
+                for (let i = 0; i < shape.points.length; i++) {
+                    for (let j = 0; j < _this.points.length; j++) {
+                        if (shape.points[i].contains(_this.points[j])) {
+                            parent.remove(parent.getObjectByName(_this.points[j].getID())) 
+                        }
+                    }
+                }    
+            }    
+        });        
         this.scene.add(parent);
         return parent;
     };
@@ -434,6 +447,16 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        var sh = this.scene.getObjectByName("child" + this.getID());
+        var p1 = this.scene.getObjectByName(points[0].getID());
+        var p2 = this.scene.getObjectByName(points[1].getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = points[i].x;
+            sh.geometry.vertices[i].z = points[i].y;
+        }
+        p1.position.set(points[0].x, 0, points[0].y);
+        p2.position.set(points[1].x, 0, points[1].y);
+        sh.geometry.verticesNeedUpdate = true;
         this.updateMeasureTexts();
     };
     
