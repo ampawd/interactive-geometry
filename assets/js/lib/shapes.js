@@ -355,16 +355,23 @@
     Line.prototype.createMeshFromThis = function() {
         var lineGeometry = new THREE.Geometry(),
             lineMaterial,
-            lineMesh;
+            lineMesh, parent;
         lineGeometry.vertices.push(new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         lineGeometry.vertices.push(new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
         lineGeometry.vertices.push(new THREE.Vector3(this.points[2].x, 0, this.points[2].y));
         lineGeometry.vertices.push(new THREE.Vector3(this.points[3].x, 0, this.points[3].y));        
         lineMaterial = new THREE.LineBasicMaterial({color: new THREE.Color(this.color).getHex()});
         lineMesh = new THREE.Line(lineGeometry, lineMaterial);
-        lineMesh.name = this.getID();
-        this.scene.add(lineMesh);
-        return lineMesh;
+        parent = new THREE.Object3D();
+        parent.add(lineMesh);
+        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
+        var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
+        p1.name = this.points[0].getID();
+        p2.name = this.points[1].getID();
+        parent.add(p1); parent.add(p2);
+        parent.name = this.getID();
+        this.scene.add(parent);
+        return parent;
     };
     
     Line.prototype.render = function() {
@@ -528,14 +535,21 @@
     Ray.prototype.createMeshFromThis = function() {
         var rayGeometry = new THREE.Geometry(),
             rayMaterial,
-            rayMesh;
+            rayMesh, parent;
         rayGeometry.vertices.push(new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         rayGeometry.vertices.push(new THREE.Vector3(this.points[1].x, 0, this.points[1].y));        
         rayMaterial = new THREE.LineBasicMaterial({color: new THREE.Color(this.color).getHex() });
         rayMesh = new THREE.Line(rayGeometry, rayMaterial);
-        rayMesh.name = this.getID();
-        this.scene.add(rayMesh);
-        return rayMesh;
+        parent = new THREE.Object3D();
+        parent.add(rayMesh);
+        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
+        var p2 = createPoint3D(5, new THREE.Vector3(this.points[2].x, 0, this.points[2].y));
+        p1.name = this.points[0].getID();
+        p2.name = this.points[2].getID();
+        parent.add(p1); parent.add(p2);
+        parent.name = this.getID();
+        this.scene.add(parent);
+        return parent;
     };
     
     Ray.prototype.render = function() {
@@ -791,14 +805,21 @@
     Segment.prototype.createMeshFromThis = function() {
         var segmentGeometry = new THREE.Geometry(),
             segmentMaterial,
-            segmentMesh;
+            segmentMesh, parent;
         segmentGeometry.vertices.push(new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         segmentGeometry.vertices.push(new THREE.Vector3(this.points[1].x, 0, this.points[1].y));        
         segmentMaterial = new THREE.LineBasicMaterial( {color: new THREE.Color(this.color).getHex() } );
         segmentMesh = new THREE.Line(segmentGeometry, segmentMaterial);
-        segmentMesh.name = this.getID();
-        this.scene.add(segmentMesh);
-        return segmentMesh;
+        parent = new THREE.Object3D();
+        parent.add(segmentMesh);
+        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
+        var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
+        p1.name = this.points[0].getID();
+        p2.name = this.points[1].getID();
+        parent.add(p1); parent.add(p2);
+        parent.name = this.getID();
+        this.scene.add(parent);
+        return parent;
     };
     
     Segment.prototype.render = function() {
@@ -876,11 +897,18 @@
     };
     
     Vector.prototype.createMeshFromThis = function() {
-        var hexColor = new THREE.Color(this.color).getHex();
-        var vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x, 0, this.points[0].y), new THREE.Vector3(this.points[1].x, 0, this.points[1].y), hexColor);
-        vectorMesh.name = this.getID();
-        this.scene.add(vectorMesh)
-        return vectorMesh;
+        var hexColor = new THREE.Color(this.color).getHex(), parent;
+        var vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x, 0, this.points[0].y), new THREE.Vector3(this.points[1].x, 0, this.points[1].y), hexColor, 70, 15);
+        parent = new THREE.Object3D();
+        parent.add(vectorMesh);
+        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
+        var p2 = createPoint3D(3, new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
+        p1.name = this.points[0].getID();
+        p2.name = this.points[1].getID();
+        parent.add(p1); parent.add(p2);
+        parent.name = this.getID();
+        this.scene.add(parent)
+        return parent;
     };
     
     Vector.prototype.render = function() {
@@ -1015,13 +1043,18 @@
     Polygon.prototype.createMeshFromThis = function() {
         var polygonShape = new THREE.Shape();
         var points = this.points;
-        var temp;
+        var temp, parent = new THREE.Object3D(), p;
         
         polygonShape.moveTo(points[0].x, points[0].y);
+        p = createPoint3D(5, new THREE.Vector3(points[0].x, 0, points[0].y));
+        p.name = points[0].getID();
+        parent.add(p);
         for (let i = 1; i < points.length; i++) {
             polygonShape.lineTo(points[i].x, points[i].y);
+            p = createPoint3D(5, new THREE.Vector3(points[i].x, 0, points[i].y));
+            p.name = points[i].getID();
+            parent.add(p);
         }
-        
         var polygonGeom = new THREE.ShapeGeometry(polygonShape);
         for (var i = 0; i < polygonGeom.vertices.length; i++) {
             temp = polygonGeom.vertices[i].y;
@@ -1030,9 +1063,10 @@
         }
         var hexColor = new THREE.Color(this.renderParams.fillColor).getHex();
         var polygonMesh = new THREE.Mesh(polygonGeom, new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide }));
-        polygonMesh.name = this.getID();
-        this.scene.add(polygonMesh);
-        return polygonMesh;
+        parent.add(polygonMesh);
+        parent.name = this.getID();
+        this.scene.add(parent);
+        return parent;
     };
     
     Polygon.prototype.render = function() {
@@ -1363,16 +1397,22 @@
     };
     
     Circle.prototype.createMeshFromThis = function() {
-        var circleGeometry = new THREE.Geometry();
+        var circleGeometry = new THREE.Geometry(), parent = new THREE.Object3D();
         for (var alpha = 0; alpha <= 360; alpha++) {
             circleGeometry.vertices.push(new THREE.Vector3(this.R * Math.cos(alpha * degToRad), 0, this.R * Math.sin(alpha*degToRad)));
         }
         var mat = new THREE.LineBasicMaterial( {color: new THREE.Color(this.strokeStyle).getHex() } );
-        var circleMesh = new THREE.Line( circleGeometry, mat );
+        var circleMesh = new THREE.Line(circleGeometry, mat);
         circleMesh.position.set(this.points[0].x, 0, this.points[0].y);
-        circleMesh.name = this.getID();
-        this.scene.add(circleMesh);
-        return circleMesh;
+        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
+        p1.name = this.points[0].getID();
+        var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
+        p2.name = this.points[1].getID();
+        parent.add(p1); parent.add(p2);
+        parent.add(circleMesh);
+        parent.name = this.getID();
+        this.scene.add(parent);
+        return parent;
     };
     
     Circle.prototype.render = function() {
@@ -1586,10 +1626,7 @@
     };
     
     Point.prototype.createMeshFromThis = function() {
-        var point3DGeom = new THREE.SphereGeometry( 8, 32, 32 );
-        var mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
-        var point3D = new THREE.Mesh( point3DGeom, mat );
-        point3D.position.set(this.x, 0, this.y);
+        var point3D = createPoint3D(5, new THREE.Vector3(this.x, 0, this.y));
         point3D.name = this.getID();
         this.scene.add(point3D);
         return point3D;
@@ -1749,23 +1786,13 @@
     Text2d.prototype.translate = function(v) {
         this.x = v.x;
         this.y = v.y;
-    };
-    
+    };   
         
-    function Polygon3D() {
-        var polygonShape = new THREE.Shape();
-        polygonShape.moveTo( 0,0 );
-        polygonShape.lineTo( 0, rectWidth );
-        polygonShape.lineTo( 120, 40 );
-        polygonShape.lineTo( 0, 0 );				
-        var polygonGeom = new THREE.ShapeGeometry(polygonShape);
-        var polygonMesh = new THREE.Mesh(polygonGeom, new THREE.MeshLambertMaterial({ color: 0xff0000 }));
-    }
-    
-    function ArrowedVector(from, to, color, addCircle, unit) {
+ 
+    function ArrowedVector(from, to, color, _headLength, _headWidth, addCircle, unit) {
 		var parent = new THREE.Object3D(),
-			headLength = 25,
-			headWidth = 7,
+			headLength = _headLength,
+			headWidth = _headWidth,
 			direction = to.clone().sub(from),
 			length = direction.length(),
 			magnitudeVec = new THREE.ArrowHelper(direction.normalize(), from, unit ? 1 : length, color, headLength, headWidth );
@@ -1786,7 +1813,7 @@
 			axis = new THREE.Line(geom, mat, THREE.LinePieces);
 		} else {
 			mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
-			axis = ArrowedVector(src, dst, colorHex, 0, 0);
+			axis = ArrowedVector(src, dst, colorHex, 50, 10, 0, 0);
 		}
 		return axis;
 	}
@@ -1802,6 +1829,14 @@
 		axes.position.set(position && position.x || 0, position && position.y || 0, position && position.z || 0);	
 		return axes;
 	}
+    
+    function createPoint3D(radius, v) {
+        var point3DGeom = new THREE.SphereGeometry( radius, 32, 32 );
+        var mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
+        var point3D = new THREE.Mesh( point3DGeom, mat );
+        point3D.position.set(v.x || 0, v.y || 0, v.z || 0);
+        return point3D;
+    }
     
     Global.shapes = Global.shapes || {
         Shape: Shape,
