@@ -47,7 +47,7 @@
 	
 		cnvParams.cnv = $('#canvas2d');
 		cnvParams.ctx = cnvParams.cnv[0].getContext('2d');
-		cnvParams.renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+		cnvParams.renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({antialias: true}) : new THREE.CanvasRenderer();
 		cnvParams.cnv3D = $(cnvParams.renderer.domElement);
 		cnvParams.scene = new THREE.Scene();
 		cnvParams._3DviewEnabled = false;
