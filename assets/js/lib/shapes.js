@@ -35,7 +35,7 @@
         this.className = this.constructor.name;
         this.points = [];
         this.connectedShapes = new Map();
-        
+        this.container3 = 0;
         this.transformable = true;
         this.customTransformable = false;
         this.translatable = true;
@@ -225,6 +225,10 @@
         return this.opacity;
     };
     
+    Shape.prototype.resolveDuplicatePoints = function(parent) {
+        
+    };
+    
     Shape.prototype.setRenderAttribs = function(attr) {
         throw("Abstract method can't be called");
     };  
@@ -356,20 +360,22 @@
         var lineGeometry = new THREE.Geometry(),
             lineMaterial,
             lineMesh, parent;
+        parent = new THREE.Object3D();
         lineGeometry.vertices.push(new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         lineGeometry.vertices.push(new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
         lineGeometry.vertices.push(new THREE.Vector3(this.points[2].x, 0, this.points[2].y));
-        lineGeometry.vertices.push(new THREE.Vector3(this.points[3].x, 0, this.points[3].y));        
+        lineGeometry.vertices.push(new THREE.Vector3(this.points[3].x, 0, this.points[3].y));  
         lineMaterial = new THREE.LineBasicMaterial({color: new THREE.Color(this.color).getHex()});
         lineMesh = new THREE.Line(lineGeometry, lineMaterial);
-        parent = new THREE.Object3D();
-        parent.add(lineMesh);
+        lineMesh.name = "child" + this.getID();
         var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x, 0, this.points[1].y));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
-        parent.name = this.getID();
+        parent.add(lineMesh);
+        parent.name = this.getID();        
+        this.container3 = parent;
         this.scene.add(parent);
         return parent;
     };
@@ -434,6 +440,16 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(points[0].getID());
+        var p2 = this.container3.getObjectByName(points[1].getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = points[i].x;
+            sh.geometry.vertices[i].z = points[i].y;
+        }
+        p1.position.set(points[0].x, 0, points[0].y);
+        p2.position.set(points[1].x, 0, points[1].y);
+        sh.geometry.verticesNeedUpdate = true;
         this.updateMeasureTexts();
     };
     
@@ -542,12 +558,14 @@
         rayMesh = new THREE.Line(rayGeometry, rayMaterial);
         parent = new THREE.Object3D();
         parent.add(rayMesh);
+        rayMesh.name = "child" + this.getID();
         var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         var p2 = createPoint3D(5, new THREE.Vector3(this.points[2].x, 0, this.points[2].y));
         p1.name = this.points[0].getID();
         p2.name = this.points[2].getID();
         parent.add(p1); parent.add(p2);
         parent.name = this.getID();
+        this.container3 = parent;
         this.scene.add(parent);
         return parent;
     };
@@ -610,6 +628,16 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(points[0].getID());
+        var p2 = this.container3.getObjectByName(points[2].getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = points[i].x;
+            sh.geometry.vertices[i].z = points[i].y;
+        }
+        p1.position.set(points[0].x, 0, points[0].y);
+        p2.position.set(points[2].x, 0, points[2].y);
+        sh.geometry.verticesNeedUpdate = true;
         this.updateMeasureTexts();
     };
     
@@ -767,7 +795,16 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
-        
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(points[0].getID());
+        var p2 = this.container3.getObjectByName(points[1].getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = points[i].x;
+            sh.geometry.vertices[i].z = points[i].y;
+        }
+        p1.position.set(points[0].x, 0, points[0].y);
+        p2.position.set(points[1].x, 0, points[1].y);
+        sh.geometry.verticesNeedUpdate = true;
         this.updateMeasureTexts();
     };
     
@@ -810,6 +847,7 @@
         segmentGeometry.vertices.push(new THREE.Vector3(this.points[1].x, 0, this.points[1].y));        
         segmentMaterial = new THREE.LineBasicMaterial( {color: new THREE.Color(this.color).getHex() } );
         segmentMesh = new THREE.Line(segmentGeometry, segmentMaterial);
+        segmentMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(segmentMesh);
         var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
@@ -818,6 +856,7 @@
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
         parent.name = this.getID();
+        this.container3 = parent;
         this.scene.add(parent);
         return parent;
     };
@@ -899,6 +938,7 @@
     Vector.prototype.createMeshFromThis = function() {
         var hexColor = new THREE.Color(this.color).getHex(), parent;
         var vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x, 0, this.points[0].y), new THREE.Vector3(this.points[1].x, 0, this.points[1].y), hexColor, 70, 15);
+        vectorMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(vectorMesh);
         var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
@@ -907,8 +947,52 @@
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
         parent.name = this.getID();
-        this.scene.add(parent)
+        this.container3 = parent;
+        this.scene.add(parent);
         return parent;
+    };
+    
+    Vector.prototype.transform = function(transformProps, mdown, mmove) {
+        let points = this.points, diff = new Vec2();
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(points[0].getID());
+        var p2 = this.container3.getObjectByName(points[1].getID());
+        if (!this.transformable) {
+            return;
+        }
+        if (!this.customTransformable) {
+            if (transformProps.v1) {
+                //var alpha = getAngle(points[1], points[0], mmove);
+                points[0].set(mmove.x, mmove.y);
+                p1.position.set(points[0].x, 0, points[0].y);
+                //var t = new THREE.Matrix4(),
+                //    r = new THREE.Matrix4(),
+                //    tback = new THREE.Matrix4(),
+                //    res = new THREE.Matrix4();
+                //t.makeTranslation(-points[0].x, 0, -points[0].y);
+                //r.makeRotationY(alpha);
+                //tback.makeTranslation(points[0].x, 0, points[0].y);
+                //res.multiplyMatrices(tback, r);
+                //res.multiplyMatrices(res, t);                
+                //sh.applyMatrix(res);
+            }
+            if (transformProps.v2) {
+                points[1].set(mmove.x, mmove.y);
+                p2.position.set(points[1].x, 0, points[1].y);
+                
+            }
+        }
+        if (this.translatable && transformProps.translating) {
+            diff = mmove.sub(mdown);
+            this.translate(diff);
+            sh.translateX(diff.x);
+            sh.translateZ(diff.y);
+            p1.position.set(points[0].x, 0, points[0].y);
+            p2.position.set(points[1].x, 0, points[1].y);
+            mdown.set(mmove.x, mmove.y);
+        }
+        
+        this.updateMeasureTexts();
     };
     
     Vector.prototype.render = function() {
@@ -990,6 +1074,14 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = this.points[i].x;
+            sh.geometry.vertices[i].z = this.points[i].y;
+            var p = this.container3.getObjectByName(this.points[i].getID());
+            p.position.set(this.points[i].x, 0, this.points[i].y);
+        }
+        sh.geometry.verticesNeedUpdate = true;
         this.updateMeasureTexts();
     };
     
@@ -1063,8 +1155,10 @@
         }
         var hexColor = new THREE.Color(this.renderParams.fillColor).getHex();
         var polygonMesh = new THREE.Mesh(polygonGeom, new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide }));
+        polygonMesh.name = "child" + this.getID();
         parent.add(polygonMesh);
         parent.name = this.getID();
+        this.container3 = parent;
         this.scene.add(parent);
         return parent;
     };
@@ -1293,6 +1387,14 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = this.points[i].x;
+            sh.geometry.vertices[i].z = this.points[i].y;
+            var p = this.container3.getObjectByName(this.points[i].getID());
+            p.position.set(this.points[i].x, 0, this.points[i].y);
+        }
+        sh.geometry.verticesNeedUpdate = true;
         this.updateMeasureTexts();
     };
     
@@ -1403,6 +1505,7 @@
         }
         var mat = new THREE.LineBasicMaterial( {color: new THREE.Color(this.strokeStyle).getHex() } );
         var circleMesh = new THREE.Line(circleGeometry, mat);
+        circleMesh.name = "child" + this.getID();
         circleMesh.position.set(this.points[0].x, 0, this.points[0].y);
         var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x, 0, this.points[0].y));
         p1.name = this.points[0].getID();
@@ -1411,6 +1514,7 @@
         parent.add(p1); parent.add(p2);
         parent.add(circleMesh);
         parent.name = this.getID();
+        this.container3 = parent;
         this.scene.add(parent);
         return parent;
     };
@@ -1479,6 +1583,18 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        for (var i = 0; i < this.points.length; i++) {
+            var p = this.container3.getObjectByName(this.points[i].getID());
+            p.position.set(this.points[i].x, 0, this.points[i].y);
+        }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        for (var alpha = 0, i = 0; alpha <= 360; alpha++) {
+            sh.geometry.vertices[i].x = this.R * Math.cos(alpha * degToRad);
+            sh.geometry.vertices[i].y = 0;
+            sh.geometry.vertices[i++].z = this.R * Math.sin(alpha*degToRad);
+        }
+        sh.position.set(center.x, 0, center.y)
+        sh.geometry.verticesNeedUpdate = true;
         this.updateMeasureTexts();
     };
     
@@ -1671,6 +1787,8 @@
         if (this.translatable) {
             this.translate(mmove);    
         }
+        var sh = this.scene.getObjectByName(this.getID());
+        sh.position.set(this.x, 0, this.y);
         this.updateMeasureTexts();
     };
     
@@ -1837,6 +1955,15 @@
         point3D.position.set(v.x || 0, v.y || 0, v.z || 0);
         return point3D;
     }
+    
+    function containsP(v, x, y) {
+        let dx = x - v.x,
+            dy = y - v.y;					
+        if ( dx*dx + dy*dy <= 100 ) {
+            return true;
+        }
+        return false;
+    };
     
     Global.shapes = Global.shapes || {
         Shape: Shape,

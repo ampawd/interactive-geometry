@@ -133,7 +133,7 @@
 				cnvParams.cnv3D.off("mousedown");
 				cnvParams.cnv3D.off("mousemove");
 				cnvParams.cnv3D.off("mouseup");
-				
+				var _90deginRad = Math.PI * 0.5;
 				cnvParams.cnv3D.mousedown(function(e) {
 					var mouse = new Vec2(),
 						lastX, lastY;
@@ -146,11 +146,18 @@
 					cnvParams.cnv3D.mousemove(function(e) {
 						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
 						diffX = mouse.x - lastX;
-						diffY = mouse.y - lastY;						
+						diffY = mouse.y - lastY;
+						
 						rx = diffY / 200;
 						ry = diffX / 200;
 						
 						scene.rotation.x += rx;
+						if (scene.rotation.x > _90deginRad) {
+                            scene.rotation.x = _90deginRad;
+                        }
+						if (scene.rotation.x < -_90deginRad) {
+                            scene.rotation.x = -_90deginRad;
+                        }
 						scene.rotation.y += ry;
 						
 						renderer.render(scene, camera);
@@ -174,7 +181,7 @@
 				cnvParams.w = cnvParams.cnv.width();				
 				cnvParams.renderer.setSize(0, 0);
 			}
-			
+			Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
 			renderShapes();
 		});
 		
@@ -238,13 +245,15 @@
 					
 					if (shapes_3D.has(selID)) {
 						shapes_3D.delete(selID);
-						cnvParams.scene.remove(cnvParams.scene.getObjectByName(selID));
-						cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
                     }
+					var rObj = cnvParams.scene.getObjectByName(selID);
+					cnvParams.scene.remove(rObj);
+					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
 					cnvParams.selectedShape = 0;
 					disableSelectedShapeAttribControls();
 				}
+				//log("after delete ",  cnvParams.scene.children)
             }
         }
 		
@@ -272,6 +281,7 @@
 		Shape.prototype.cnvOffsetY = cnvParams.cnvOffsetY;
 		Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
 		Shape.prototype.scene = cnvParams.scene;
+		Shape.prototype.shapes = shapes;
 		Shape.prototype.geometryEngine = new GeometryEngine();
 	}
 	
@@ -517,6 +527,7 @@
 				prepare3DShapes();
 				//console.log(shapes);
 				//console.log(shapes_3D);
+				//log(cnvParams.scene.children)
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				renderShapes();
 				return;
@@ -573,6 +584,7 @@
 					mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 					geometryEngine.transformShapes(transformProps, mdown, mmove);
+					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
 				});
 				cnvParams.cnv.mouseup(function() {
