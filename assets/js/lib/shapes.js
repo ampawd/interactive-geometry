@@ -70,6 +70,9 @@
         throw("Abstract method can't be called");
     };
     
+    Shape.prototype.transformIn_3D = function() {
+        
+    };
     
     Shape.prototype.attach = function(shape) {
         this.connectedShapes.set(shape.getID(), shape);
@@ -127,11 +130,12 @@
             mid = entry[1][2];
             temp = entry[1][0].add(entry[1][1]).multScalar(0.5);
             mid.set(temp.x, temp.y);
+            mid.transformIn_3D();
             prop = this.geometryEngine.getShapesGroupTransformProps(mid, false, mid.connectedShapes);
             for (let id in prop) {
                 if (id !== this.getID()) {
                     if (mid.connectedShapes.has(id)) {
-                        mid.connectedShapes.get(id).transform(prop[id], mdown, mid);        
+                        mid.connectedShapes.get(id).transform(prop[id], mdown, mid);
                     }
                 }
             }
@@ -158,6 +162,7 @@
                     alpha = getAngle(points[0], points[1], points[2]);
                 }
                 shape.rotate(shape.points[0].toVec2(), alpha/2);
+                shape.transformIn_3D();
             }
             if (shape.parallel || shape.perpendicular) {
                 v1.set(shape.points[0].x, shape.points[0].y);
@@ -180,8 +185,11 @@
                 shape.points[3].set(v1.x, v1.y);
                 if (shape.perpendicular) {
                     shape.rotate(pp1, Math.PI * 0.5);
-                }
+                }   
+                            
+                shape.transformIn_3D();
             }
+            
             shape.transformPrlPrpnBisLines(mdown, mmove);
             shape.updateMidPoints(mdown, mmove);
         });
@@ -380,6 +388,22 @@
         return parent;
     };
     
+    Line.prototype.transformIn_3D = function() {
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(this.points[0].getID());
+        var p2 = this.container3.getObjectByName(this.points[1].getID());
+        for (let i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = this.points[i].x;
+            sh.geometry.vertices[i].z = this.points[i].y;
+        }
+        p1.position.set(this.points[0].x, 0, this.points[0].y);
+        p2.position.set(this.points[1].x, 0, this.points[1].y);
+        sh.geometry.verticesNeedUpdate = true;
+    }
+    
     Line.prototype.render = function() {
         let points = this.points;
         let ctx = this.ctx;
@@ -440,16 +464,8 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(points[0].getID());
-        var p2 = this.container3.getObjectByName(points[1].getID());
-        for (var i = 0; i < sh.geometry.vertices.length; i++) {
-            sh.geometry.vertices[i].x = points[i].x;
-            sh.geometry.vertices[i].z = points[i].y;
-        }
-        p1.position.set(points[0].x, 0, points[0].y);
-        p2.position.set(points[1].x, 0, points[1].y);
-        sh.geometry.verticesNeedUpdate = true;
+        
+        this.transformIn_3D();
         this.updateMeasureTexts();
     };
     
@@ -628,17 +644,24 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(points[0].getID());
-        var p2 = this.container3.getObjectByName(points[2].getID());
-        for (var i = 0; i < sh.geometry.vertices.length; i++) {
-            sh.geometry.vertices[i].x = points[i].x;
-            sh.geometry.vertices[i].z = points[i].y;
-        }
-        p1.position.set(points[0].x, 0, points[0].y);
-        p2.position.set(points[2].x, 0, points[2].y);
-        sh.geometry.verticesNeedUpdate = true;
+        this.transformIn_3D();
         this.updateMeasureTexts();
+    };
+    
+    Ray.prototype.transformIn_3D = function() {
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(this.points[0].getID());
+        var p2 = this.container3.getObjectByName(this.points[2].getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = this.points[i].x;
+            sh.geometry.vertices[i].z = this.points[i].y;
+        }
+        p1.position.set(this.points[0].x, 0, this.points[0].y);
+        p2.position.set(this.points[2].x, 0, this.points[2].y);
+        sh.geometry.verticesNeedUpdate = true;
     };
     
     Ray.prototype.contains = function(v) {
@@ -795,17 +818,24 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(points[0].getID());
-        var p2 = this.container3.getObjectByName(points[1].getID());
-        for (var i = 0; i < sh.geometry.vertices.length; i++) {
-            sh.geometry.vertices[i].x = points[i].x;
-            sh.geometry.vertices[i].z = points[i].y;
-        }
-        p1.position.set(points[0].x, 0, points[0].y);
-        p2.position.set(points[1].x, 0, points[1].y);
-        sh.geometry.verticesNeedUpdate = true;
+        this.transformIn_3D();
         this.updateMeasureTexts();
+    };
+    
+    Segment.prototype.transformIn_3D = function() {
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
+        var sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(this.points[0].getID());
+        var p2 = this.container3.getObjectByName(this.points[1].getID());
+        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].x = this.points[i].x;
+            sh.geometry.vertices[i].z = this.points[i].y;
+        }
+        p1.position.set(this.points[0].x, 0, this.points[0].y);
+        p2.position.set(this.points[1].x, 0, this.points[1].y);
+        sh.geometry.verticesNeedUpdate = true;
     };
     
     Segment.prototype.contains = function(v) {
@@ -953,46 +983,39 @@
     };
     
     Vector.prototype.transform = function(transformProps, mdown, mmove) {
-        let points = this.points, diff = new Vec2();
-        let sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(points[0].getID());
-        var p2 = this.container3.getObjectByName(points[1].getID());
+        let points = this.points, diff = new Vec2();            
         if (!this.transformable) {
             return;
         }
         if (!this.customTransformable) {
             if (transformProps.v1) {
-                //var alpha = getAngle(points[1], points[0], mmove);
                 points[0].set(mmove.x, mmove.y);
-                p1.position.set(points[0].x, 0, points[0].y);
-                //var t = new THREE.Matrix4(),
-                //    r = new THREE.Matrix4(),
-                //    tback = new THREE.Matrix4(),
-                //    res = new THREE.Matrix4();
-                //t.makeTranslation(-points[0].x, 0, -points[0].y);
-                //r.makeRotationY(alpha);
-                //tback.makeTranslation(points[0].x, 0, points[0].y);
-                //res.multiplyMatrices(tback, r);
-                //res.multiplyMatrices(res, t);                
-                //sh.applyMatrix(res);
             }
             if (transformProps.v2) {
                 points[1].set(mmove.x, mmove.y);
-                p2.position.set(points[1].x, 0, points[1].y);
-                
             }
         }
         if (this.translatable && transformProps.translating) {
             diff = mmove.sub(mdown);
             this.translate(diff);
-            sh.translateX(diff.x);
-            sh.translateZ(diff.y);
-            p1.position.set(points[0].x, 0, points[0].y);
-            p2.position.set(points[1].x, 0, points[1].y);
+
             mdown.set(mmove.x, mmove.y);
         }
-        
+        this.transformIn_3D();
         this.updateMeasureTexts();
+    };
+    
+    Vector.prototype.transformIn_3D = function() {
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        var p1 = this.container3.getObjectByName(this.points[0].getID());
+        var p2 = this.container3.getObjectByName(this.points[1].getID());
+        sh.translateX(diff.x);
+        sh.translateZ(diff.y);
+        p1.position.set(this.points[0].x, 0, this.points[0].y);
+        p2.position.set(this.points[1].x, 0, this.points[1].y);
     };
     
     Vector.prototype.render = function() {
@@ -1074,6 +1097,14 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        this.transformIn_3D();
+        this.updateMeasureTexts();
+    };
+    
+    Polygon.prototype.transformIn_3D = function() {
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
         var sh = this.container3.getObjectByName("child" + this.getID());
         for (var i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x;
@@ -1082,7 +1113,6 @@
             p.position.set(this.points[i].x, 0, this.points[i].y);
         }
         sh.geometry.verticesNeedUpdate = true;
-        this.updateMeasureTexts();
     };
     
     Polygon.prototype.boundaryContains = function(boundarySegmentIndexes, v) {
@@ -1387,6 +1417,14 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        this.transformIn_3D();
+        this.updateMeasureTexts();
+    };
+    
+    RegularPolygon.prototype.transformIn_3D = function() {
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
         var sh = this.container3.getObjectByName("child" + this.getID());
         for (var i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x;
@@ -1395,7 +1433,6 @@
             p.position.set(this.points[i].x, 0, this.points[i].y);
         }
         sh.geometry.verticesNeedUpdate = true;
-        this.updateMeasureTexts();
     };
     
     RegularPolygon.prototype.translate = function(v) {
@@ -1583,6 +1620,15 @@
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
         }
+        this.transformIn_3D();
+        this.updateMeasureTexts();
+    };
+    
+    Circle.prototype.transformIn_3D = function() {
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
+        let center = this.points[0];
         for (var i = 0; i < this.points.length; i++) {
             var p = this.container3.getObjectByName(this.points[i].getID());
             p.position.set(this.points[i].x, 0, this.points[i].y);
@@ -1595,7 +1641,6 @@
         }
         sh.position.set(center.x, 0, center.y)
         sh.geometry.verticesNeedUpdate = true;
-        this.updateMeasureTexts();
     };
     
     Circle.prototype.contains = function(v) {
@@ -1787,9 +1832,16 @@
         if (this.translatable) {
             this.translate(mmove);    
         }
-        var sh = this.scene.getObjectByName(this.getID());
-        sh.position.set(this.x, 0, this.y);
+        this.transformIn_3D();
         this.updateMeasureTexts();
+    };
+    
+    Point.prototype.transformIn_3D = function() {
+        var sh = this.scene.getObjectByName(this.getID());
+        if (!sh) {
+            log("can't transform 3D version of this shape ...")
+        }
+        sh.position.set(this.x, 0, this.y);
     };
     
     Point.prototype.contains = function(v) {
