@@ -10,7 +10,11 @@
 ####Features to be added:
 1.  Tools for constructing and transforming 3D shapes
 2.  Curve constructing tool
-3.  Full support on mobile devices
+3.  Shape border width/style changing attribute
+4.  Grid in 3D coordinate system
+5.  Change projection with button click
+6.  Add different views towards standard ortogonal planes
+7.  Full support on mobile devices
 
 ####Technologies used:
 HTML5 canvas, javascript(with some ES6 features)
