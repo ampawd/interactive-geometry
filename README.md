@@ -9,7 +9,8 @@
 
 ####Features to be added:
 1.  Tools for constructing and transforming 3D shapes
-2.  Full support on mobile devices
+2.  Curve constructing tool
+3.  Full support on mobile devices
 
 ####Technologies used:
 HTML5 canvas, javascript(with some ES6 features)
