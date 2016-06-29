@@ -1233,19 +1233,16 @@
     };
     
     Polygon.prototype.rotate = function(v, alpha) {
-        let rotM = rotationMat(alpha),
-            trans = translationMat(v.x, v.y),
-            transBack = translationMat(-v.x, -v.y),
-            transFormedVertice, m, currentVertice = new Vec3();
-            m = trans.mult( rotM ).mult(transBack);
+        //let rotM = rotationMat(alpha),
+        //    trans = translationMat(v.x, v.y),
+        //    transBack = translationMat(-v.x, -v.y),
+        //    transFormedVertice, m, currentVertice = new Vec3();
+        //    m = trans.mult( rotM ).mult(transBack);
     
         for (let i = 0; i < this.points.length; i++) {
-            currentVertice.x = this.points[i].x;
-            currentVertice.y = this.points[i].y;
-            currentVertice.z = 1;        
-            transFormedVertice = m.multv3( currentVertice );
-            this.points[i].x = transFormedVertice.x;
-            this.points[i].y = transFormedVertice.y;	
+            this.points[i].translate(v.multScalar(-1));
+            this.points[i].rotate(alpha);
+            this.points[i].translate(v);
         }
     };
     
@@ -1838,10 +1835,9 @@
     
     Point.prototype.transformIn_3D = function() {
         var sh = this.scene.getObjectByName(this.getID());
-        if (!sh) {
-            log("can't transform 3D version of this shape ...")
+        if (sh) {
+            sh.position.set(this.x, 0, this.y);    
         }
-        sh.position.set(this.x, 0, this.y);
     };
     
     Point.prototype.contains = function(v) {
