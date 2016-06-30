@@ -117,7 +117,7 @@
 				var	renderer = cnvParams.renderer;
 				var light1 = new THREE.PointLight(0xffffff, 1, 5000);
 				var light2 = new THREE.PointLight(0xffffff, 1, 5000);
-				var coordSystem = createCoordinateSystem(newWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0xff0000, 0x00ff00, 0x0000ff));
+				var coordSystem = createCoordinateSystem(newWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
 				light1.name = "light1"; light2.name = "light2";
 				coordSystem.name = "coordSystem";
 				light1.position.set(500, 500, 700);
