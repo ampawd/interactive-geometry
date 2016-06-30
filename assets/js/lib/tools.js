@@ -95,13 +95,13 @@
                     case "ruler":
                         if (clicks === 1) {
                             let midpoint = points[0].add(mmove).multScalar(0.5).add(new Vec2(0, -15));
-                            shape = new Text2d(mmove.sub(points[0]).length().toFixed(0), "10pt arial", midpoint);
+                            shape = new Text2d(mmove.sub(points[0]).length().toFixed(2), "10pt arial", midpoint);
                         }
                     break;
                     case "protractor":
                         if (clicks === 2) {
                             angle = getAngle(points[0], points[1], mmove) * radToDeg;
-                            shape = new Text2d(angle.toFixed(0), "13pt arial", points[1].multScalar(1.02));
+                            shape = new Text2d(angle.toFixed(2), "13pt arial", points[1].multScalar(1.02));
                         }
                     break;
                 }
@@ -127,7 +127,7 @@
                             points[1].points.push(points[1]);
                             shapes.set(points[1].getID(), points[1]);
                         }
-                        shape.text = points[1].sub(points[0]).length().toFixed(0);                    
+                        shape.text = points[1].sub(points[0]).length().toFixed(2);                    
                         for (let i = 0, id; i < 2; i++) {
                             id = geometryEngine.getShapeIDByPoint(points[i]);                       
                             measuringShape = shapes.get(id);
@@ -137,7 +137,7 @@
                     break;
                     case "protractor":
                         angle = getAngle(points[0], points[1], points[2]) * radToDeg;
-                        shape.text = angle.toFixed(0);
+                        shape.text = angle.toFixed(2);
                         for (let i = 0, id; i < 3; i++) {
                             id = geometryEngine.getShapeIDByPoint(points[i]);                       
                             measuringShape = shapes.get(id);
