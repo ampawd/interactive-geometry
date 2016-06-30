@@ -71,7 +71,7 @@
     };
     
     Shape.prototype.transformIn_3D = function() {
-        
+        throw("Abstract method can't be called");
     };
     
     Shape.prototype.attach = function(shape) {
@@ -983,7 +983,11 @@
     };
     
     Vector.prototype.transform = function(transformProps, mdown, mmove) {
-        let points = this.points, diff = new Vec2();            
+        let points = this.points, diff = new Vec2();
+        if (!this.container3) {
+            log("can't transform 3D version of this shape ...")
+        }
+        let sh = this.container3.getObjectByName("child" + this.getID());
         if (!this.transformable) {
             return;
         }
@@ -998,7 +1002,8 @@
         if (this.translatable && transformProps.translating) {
             diff = mmove.sub(mdown);
             this.translate(diff);
-
+            sh.translateX(diff.x);
+            sh.translateZ(diff.y);
             mdown.set(mmove.x, mmove.y);
         }
         this.transformIn_3D();
@@ -1012,8 +1017,6 @@
         let sh = this.container3.getObjectByName("child" + this.getID());
         var p1 = this.container3.getObjectByName(this.points[0].getID());
         var p2 = this.container3.getObjectByName(this.points[1].getID());
-        sh.translateX(diff.x);
-        sh.translateZ(diff.y);
         p1.position.set(this.points[0].x, 0, this.points[0].y);
         p2.position.set(this.points[1].x, 0, this.points[1].y);
     };
@@ -1946,13 +1949,13 @@
     };    
     
     Text2d.prototype.getBoundaryWidth = function() {
-        
+        //  ...
     };
     
     Text2d.prototype.translate = function(v) {
         this.x = v.x;
         this.y = v.y;
-    };   
+    };
         
  
     function ArrowedVector(from, to, color, _headLength, _headWidth, addCircle, unit) {
