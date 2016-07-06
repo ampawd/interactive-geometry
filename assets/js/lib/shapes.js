@@ -862,11 +862,11 @@
     
     Segment.prototype.rotate = function(v, alpha) {
         let points = this.points;
-        this.translate(v.multScalar(-1));
+        this.translate(v.multScalar(-1));   //  translate to origin
         for (let i = 0; i < points.length; i++) {
-            points[i].rotate(alpha);    //  rotate around origin
+            points[i].rotate(alpha);        //  rotate around origin
         }
-        this.translate(v);              //  translate back to original position
+        this.translate(v);                  //  translate back to original position
     };
     
     Segment.prototype.createMeshFromThis = function() {
@@ -986,6 +986,7 @@
         let points = this.points, diff = new Vec2();
         if (!this.container3) {
             log("can't transform 3D version of this shape ...")
+            return;
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
         if (!this.transformable) {
@@ -1012,7 +1013,8 @@
     
     Vector.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
+            log("can't transform 3D version of this shape ...");
+            return;
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
         var p1 = this.container3.getObjectByName(this.points[0].getID());
@@ -1969,6 +1971,7 @@
 			if (addCircle) {
 				parent.add(circle(10, from.x, from.y, from.z, color));				
 			}
+            magnitudeVec.name = "arrowHelper";
 		return parent;
 	}
 	
