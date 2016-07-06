@@ -40,6 +40,10 @@ html, body {
 	padding: 10px;
 }
 
+#view-change, #view-change label, #view-change input[type="checkbox"] {
+	cursor: pointer;
+}
+
 #change-view-label {
 	vertical-align: top;
 }
