@@ -19,18 +19,18 @@
 		log = Global.utils.log,
 		getActualWinWidth = Global.utils.getActualWinWidth,
 		radToDeg = Global.math.radToDeg,
-        degToRad = Global.math.degToRad,
+    degToRad = Global.math.degToRad,
 		Shape = Global.shapes.Shape,
 		Line = Global.shapes.Line,
-        Ray = Global.shapes.Ray,
-        Segment = Global.shapes.Segment,
-        Vector = Global.shapes.Vector,
-        Polygon = Global.shapes.Polygon,
-        Triangle = Global.shapes.Triangle,
-        RegularPolygon = Global.shapes.RegularPolygon,
-        Circle = Global.shapes.Circle,
-        Point = Global.shapes.Point,
-        Text2d = Global.shapes.Text2d,
+		Ray = Global.shapes.Ray,
+		Segment = Global.shapes.Segment,
+		Vector = Global.shapes.Vector,
+		Polygon = Global.shapes.Polygon,
+		Triangle = Global.shapes.Triangle,
+		RegularPolygon = Global.shapes.RegularPolygon,
+		Circle = Global.shapes.Circle,
+		Point = Global.shapes.Point,
+		Text2d = Global.shapes.Text2d,
 		createCoordinateSystem = Global.shapes.createCoordinateSystem,
 		Vec2 = Global.math.Vec2,
 		GeometryEngine = Global.engine.GeometryEngine,
@@ -66,6 +66,7 @@
 		uiParams.undoBtn = $(".undoBtn");
 		uiParams.redoBtn = $(".redoBtn");
 		uiParams._3dviewCheckBox = $('#3dview-checkbox');
+		uiParams.projectionSelect = $('#projection_select');
 		
 		cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent)/100 );
 		cnvParams.cnv.attr("height", documentHeight - uiParams.topToolsContainerFullHeight - 10);
@@ -75,6 +76,8 @@
 		cnvParams.cnvOffsetY = uiParams.topToolsContainerFullHeight;
 		cnvParams.cnv.css({"left": cnvParams.cnvOffsetX, "top": cnvParams.cnvOffsetY});		
 		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
+		
+		cnvParams.ctx.translate(cnvParams.w/2, cnvParams.h/2)
 	}
 	
 	function setUp3D() {
@@ -82,42 +85,50 @@
 		$("#render-canvases").append(cnvParams.renderer.domElement);
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
-    }	
+  }	
 	
-	function prepare3DShapes() {
+	function prepare3DShapes(cnv3DWidth) {
+		cnv3DWidth = cnv3DWidth || 0;
 		shapes.forEach(function(shape, shapeID) {
 			if (!shapes_3D.has(shapeID) && shape.className !== "Text2d") {
-				var shape_3D = shape.createMeshFromThis();
+				var shape_3D = shape.createMeshFromThis();				
 				shapes_3D.set(shapeID, shape_3D);
-            }
+      }
 		});
 		
 		cnvParams.scene.rotation.set(initial3DShapesRotation.x, initial3DShapesRotation.y, initial3DShapesRotation.z);
-    }
+  }
 	
 	function setUpGlobalEvents() {
 		$(window).resize(initParams);
-		let factor = 2, fullWidth = cnvParams.w;
+		let factor = 2, bothCanvasesWidth = cnvParams.w, cnv3DWidth;
 				
 		uiParams._3dviewCheckBox.click(function(e) {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			if (uiParams._3dviewCheckBox.is(':checked')) {
+				uiParams.projectionSelect.removeAttr("disabled");
 				cnvParams._3DviewEnabled = true;
 				cnvParams.cnv.attr("width", actualWindowWidth/factor - ((actualWindowWidth/factor)*percent)/100 );
 				cnvParams.w = cnvParams.cnv.width();		
-				let newWidth = fullWidth - cnvParams.w - 5;
-				cnvParams.camera = new THREE.OrthographicCamera(-newWidth, newWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
-				cnvParams.renderer.setSize(newWidth, cnvParams.h);
+				cnv3DWidth = bothCanvasesWidth - cnvParams.w - 5;
+				
+				if (uiParams.projectionSelect.val() === "persp") {
+					cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
+					cnvParams.camera.position.z = 1900;
+				} else {
+					cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
+				}
+				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));					
+				
+				cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
 				cnvParams.renderer.setClearColor(0xffffff, 1);
-				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				$(cnvParams.renderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
 				var scene = cnvParams.scene;
-				var	camera = cnvParams.camera;
 				var	renderer = cnvParams.renderer;
 				var light1 = new THREE.PointLight(0xffffff, 1, 5000);
 				var light2 = new THREE.PointLight(0xffffff, 1, 5000);
-				var coordSystem = createCoordinateSystem(newWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
+				var coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
 				light1.name = "light1"; light2.name = "light2";
 				coordSystem.name = "coordSystem";
 				light1.position.set(500, 500, 700);
@@ -128,8 +139,8 @@
 				scene.add(light2);
 				scene.add(coordSystem);
 				
-				prepare3DShapes();
-				renderer.render(scene, camera);				
+				prepare3DShapes(cnv3DWidth);
+				renderer.render(scene,  cnvParams.camera);				
 				cnvParams.cnv3D.off("mousedown");
 				cnvParams.cnv3D.off("mousemove");
 				cnvParams.cnv3D.off("mouseup");
@@ -153,14 +164,14 @@
 						
 						scene.rotation.x += rx;
 						if (scene.rotation.x > _90deginRad) {
-                            scene.rotation.x = _90deginRad;
-                        }
+							scene.rotation.x = _90deginRad;
+						}
 						if (scene.rotation.x < -_90deginRad) {
-                            scene.rotation.x = -_90deginRad;
-                        }
+							scene.rotation.x = -_90deginRad;
+						}
 						scene.rotation.y += ry;
 						
-						renderer.render(scene, camera);
+						renderer.render(scene,  cnvParams.camera);
 						lastX = mouse.x;
 						lastY = mouse.y;
 					});
@@ -172,7 +183,8 @@
 					});					
 				});
 				
-            } else {
+      } else {
+				uiParams.projectionSelect.attr("disabled", true);
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
@@ -183,6 +195,21 @@
 			}
 			Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
 			renderShapes();
+		});
+		
+		uiParams.projectionSelect.change(function(e) {
+			if ($(this).val() === "ortho") {
+				cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
+				cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
+				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));
+			
+			} else if ($(this).val() === "persp") {
+				cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
+				cnvParams.camera.position.z = 1900;
+			}
+			
+			cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));
+			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 		});
 		
 		//	spectrum events handling
@@ -198,7 +225,7 @@
 						lineWidth: cnvParams.selectedShape.getBoundaryWidth()
 					});					
 					renderShapes();
-                }
+        }
 			},
 			change: function(color) {}
 		});
@@ -221,7 +248,7 @@
 					}
 					
 					renderShapes();
-                }				
+				}				
 			}
 		});
 		
@@ -229,23 +256,23 @@
 		$("#selected-shape-opacity-slider").slider("disable");
 		
 		function deleteShape() {
-            if (cnvParams.selectedShape) {
+      if (cnvParams.selectedShape) {
 				let selID = cnvParams.selectedShape.getID();
 				if (shapes.has(selID)) {
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-                    let shapesGroup = cnvParams.selectedShape.connectedShapes;					
+          let shapesGroup = cnvParams.selectedShape.connectedShapes;					
 					shapesGroup.forEach(function(sh) {
 						sh.detach(selID);
 					});					
 					shapes.delete(selID);
 					for (let entry of shapes) {
 						entry[1].connectedShapes.clear();
-                        geometryEngine.createConnectedShapesGroup(entry[1]);
-                    }
+            geometryEngine.createConnectedShapesGroup(entry[1]);
+          }
 					
 					if (shapes_3D.has(selID)) {
 						shapes_3D.delete(selID);
-                    }
+          }
 					var rObj = cnvParams.scene.getObjectByName(selID);
 					cnvParams.scene.remove(rObj);
 					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
@@ -254,8 +281,8 @@
 					disableSelectedShapeAttribControls();
 				}
 				//log("after delete ",  cnvParams.scene.children)
-            }
-        }
+      }
+    }
 		
 		$("#selected-shape-delete-btn").click(deleteShape);
 		$("body").keydown(function(e){
@@ -266,7 +293,7 @@
 		});
 		
 		$("#selected-shape-delete-btn").attr('disabled', 'disabled');
-    }
+  }
 	
 	function initShapes() {
 		shapes 		  = new Map();
@@ -304,7 +331,7 @@
 	}
 	
 	function disableSelectedShapeAttribControls() {
-        $("#selected-shape").html("");
+    $("#selected-shape").html("");
 		$("#selected-shape-colorpicker").spectrum('disable');
 		$("#selected-shape-colorpicker").spectrum("set", "#000");
 		$("#selected-shape-colorpicker").spectrum("hide");
@@ -312,7 +339,7 @@
 		$("#selected-shape-opacity-slider").slider('value', 1);
 		$("#selected-shape-opacity-slider").slider("disable");
 		$("#selected-shape-delete-btn").attr('disabled', 'disabled');
-    }
+  }
 	
 	function enableSelectedShapeAttribControls() {
 		$("#selected-shape").html(cnvParams.selectedShape.getID());
@@ -322,7 +349,7 @@
 		$("#selected-shape-opacity-slider").slider('value', cnvParams.selectedShape.getOpacity());
 		$("#selected-shape-opacity-slider").slider("enable");
 		$("#selected-shape-delete-btn").removeAttr('disabled');	//	enable delete button
-    }
+  }
 	
 	function setupTools() {
 		$(".buttons, .top-tool, .sub-tools").disableSelection();
@@ -335,7 +362,7 @@
 			
 			if (uiParams.selectedToolName !== "move") {				
 				uiParams.activeSubToolName = $("." + uiParams.selectedToolName).find(".active-subtool")[0].className.split(" ")[1];
-            } else {
+			} else {
 				//cnvParams.selectedShape = 0;
 				cnvParams.cnv.mousemove(emphasizeShapes);
 			}
@@ -375,13 +402,13 @@
 			cnvParams.ctx.drawImage(cnvImg, 0, 0);
 		};
 		
-        for (let entry of historyData[1]) {
+    for (let entry of historyData[1]) {
 			let shape = shapes.get(entry[0]);
 			if (shape) {				
 				for (let i = 0; i < shape.points.length; i++) {
 					shape.points[i].set(entry[1][i].x, entry[1][i].y);    
-                }				
-            }
+				}				
+      }
 		}
 //		GeometryEngine.prototype.shapes = shapes;
 //		for (let entry of shapes) {
@@ -393,7 +420,7 @@
 	function saveCurrentTransformStep(same) {
 		if (same) {
 			cnvParams.transformHistory.pop();
-        }
+    }
 		let transformedPoints = new Map(), pointsCopy;
 		for (let entry of shapes) {
 			pointsCopy = [];
@@ -404,7 +431,7 @@
 		}
 		cnvParams.transformHistory.push( [cnvParams.cnv[0].toDataURL(), transformedPoints] );
 		cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
-    }
+  }
 	
 	function setupHistory() {
 		uiParams.reloadBtn.click(function() {
@@ -512,15 +539,15 @@
 				shape = shapeConstructor.endConstruction();
 				if (!shape) {
 					log("shape is not created");
-                    return;
-                }
+					return;
+				}
 				shapes.set(shape.getID(), shape);
 				geometryEngine.unEmphasizeShapesPoints();
 				geometryEngine.unEmphasizeShapes();
 				cnvParams.selectedShape = shape;
 				if (cnvParams.selectedShape.className !== "Point" && cnvParams.selectedShape.className !== "Text2d") {
-                    cnvParams.selectedShape.setBoundaryWidth(2);
-                } else if (cnvParams.selectedShape.className === "Point") {
+          cnvParams.selectedShape.setBoundaryWidth(2);
+        } else if (cnvParams.selectedShape.className === "Point") {
 					cnvParams.selectedShape.setBoundaryWidth(4);
 				}
 				enableSelectedShapeAttribControls();			
@@ -552,21 +579,21 @@
 			selShape = cnvParams.selectedShape;
 			pointShape = 0;
 			for (let entry of shapes) {
-                for (let i = 0; i < entry[1].points.length; i++) {
-                    if (entry[1].points[i].contains(mdown)) {
-                        cnvParams.selectedShape = entry[1].points[i];
+				for (let i = 0; i < entry[1].points.length; i++) {
+					if (entry[1].points[i].contains(mdown)) {
+						cnvParams.selectedShape = entry[1].points[i];
 						break;
-                    }
-                }
-            }
+					}
+				}
+      }
 			if (cnvParams.selectedShape) {
 				if (cnvParams.selectedShape.className !== "Point" && cnvParams.selectedShape.className !== "Text2d") {
-                    cnvParams.selectedShape.setBoundaryWidth(2);
-                } else if (cnvParams.selectedShape.className === "Point") {
+          cnvParams.selectedShape.setBoundaryWidth(2);
+				} else if (cnvParams.selectedShape.className === "Point") {
 					cnvParams.selectedShape.setBoundaryWidth(4);
 				}
 				enableSelectedShapeAttribControls();
-            } else {
+      } else {
 				disableSelectedShapeAttribControls();
 				geometryEngine.unEmphasizeShapes();
 				cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
@@ -575,7 +602,7 @@
 			
 			if (!useOldTransformProps) {                	
 				transformProps = geometryEngine.getShapesGroupTransformProps(mdown, true, connectedShapesGroup);
-            }
+      }
 			
 			if (!$.isEmptyObject(transformProps)) {
 				//saveCurrentTransformStep(true);
@@ -633,11 +660,11 @@
 	}
 	
 	function setup() {
-        setUpGlobalEvents();
+    setUpGlobalEvents();
 		setupHistory();
 		setupTools();
 		setUp3D();
-    }
+  }
 	
 	Global.app = Global.app || {
 		initParams : initParams,
