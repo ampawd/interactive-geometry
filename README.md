@@ -6,13 +6,13 @@
 5.  Dynamically change shape's attributes (opacity, fill color)
 6.  Transform and observe dynamically applied changes to shape/shapes group
 7.  View constructed shape in 3D coordinate system
+8.  Different projection modes
 
 ####Features to be added:
 1.  Tools for constructing and transforming 3D shapes
 2.  Curve constructing tool
 3.  Shape border width/style changing attribute
 4.  Grid in 3D coordinate system
-5.  Change projection with button click
 6.  Add different views towards standard ortogonal planes
 7.  Full support on mobile devices
 
