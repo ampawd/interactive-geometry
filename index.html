@@ -118,18 +118,24 @@
 					<div id="shape-attribs">
 						<span>
 							<input type="text" id="selected-shape-colorpicker" />
-							<lable id="selected-shape"></lable>
+							<label id="selected-shape"></label>
 						</span>
 						<div id="selected-shape-opacity">
 							<div id="selected-shape-opacity-slider"></div>
 							<input type="text" id="selected-shape-opacity-amount" readonly />
 						</div>
 					</div>
-					<div id="view-change">
-						<span id="3dviewchbox-container">
-							<label for="3dview-checkbox" id="change-view-label">3D view</label>
+					<div id="projection_change" title="change 3D projection">
+						<select id="projection_select" disabled="true">
+							<option value="ortho">Orthographic</option>
+							<option value="persp">Perspective</option>
+						</select>
+					</div>
+					<div id="view-change" title="change view">
+						<label for="3dview-checkbox" id="view_change_label">
+							<img src="assets/images/3d_view.png" alt="3d_view">
 							<input type="checkbox" value="" id="3dview-checkbox" />
-						</span>
+						</label>
 					</div>
 				</div>
 			</div>

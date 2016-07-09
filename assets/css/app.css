@@ -32,24 +32,39 @@ html, body {
 	background: #def;
 }
 
+#projection_change {
+	float: right;	
+	font-family: Arial;
+	padding-top: 10px;
+	padding-left: 10px;
+	padding-right: 5px;
+	padding-bottom: 5px;
+}
+
+#projection_select {
+	font-size: 11px;
+}
+
 #view-change {
 	font-size: 13px;
 	font-family: Arial;
-	display: inline-block;
 	float: right;
-	padding: 10px;
+	padding: 5px;
 }
+
+#view-change input[type="checkbox"] {
+	vertical-align: 4px !important;
+	margin-left: 0px;
+}
+
 
 #view-change, #view-change label, #view-change input[type="checkbox"] {
 	cursor: pointer;
 }
 
-#change-view-label {
-	vertical-align: top;
-}
-
-#3dview-checkbox {
-	margin-top: 5px !important;
+#view_change_label img  {
+	width: 27px;
+	height: 25px;	
 }
 
 #shape-attribs {

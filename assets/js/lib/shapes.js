@@ -42,6 +42,7 @@
         this.rotatable = true;
         this.scalable = true;
         this.opacity = 1.0;
+				this.position = new Vec2(0, 0);	//	center of the mass
                 
         if (this.className !== "Text2d") {
             this.advancedlines = [];
@@ -1494,6 +1495,7 @@
         this.angle = angle || 2 * Math.PI;
         this.points.push(center);
         this.points.push(ndpoint);
+				this.position.set(center.x, center.y);
     }
     
     Circle.count = 0;
