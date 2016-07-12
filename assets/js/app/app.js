@@ -76,8 +76,6 @@
 		cnvParams.cnvOffsetY = uiParams.topToolsContainerFullHeight;
 		cnvParams.cnv.css({"left": cnvParams.cnvOffsetX, "top": cnvParams.cnvOffsetY});		
 		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
-		
-		cnvParams.ctx.translate(cnvParams.w/2, cnvParams.h/2)
 	}
 	
 	function setUp3D() {
