@@ -85,8 +85,7 @@
 		cnvParams.renderer.setSize(0, 0);
   }	
 	
-	function prepare3DShapes(cnv3DWidth) {
-		cnv3DWidth = cnv3DWidth || 0;
+	function prepare3DShapes() {
 		shapes.forEach(function(shape, shapeID) {
 			if (!shapes_3D.has(shapeID) && shape.className !== "Text2d") {
 				var shape_3D = shape.createMeshFromThis();				
@@ -135,9 +134,10 @@
 				light2.intensity = 1;
 				scene.add(light1);	
 				scene.add(light2);
-				scene.add(coordSystem);
+				scene.add(coordSystem);				
 				
-				prepare3DShapes(cnv3DWidth);
+				Shape.prototype.cnvW = cnvParams.w;
+				prepare3DShapes();
 				renderer.render(scene,  cnvParams.camera);				
 				cnvParams.cnv3D.off("mousedown");
 				cnvParams.cnv3D.off("mousemove");
@@ -241,9 +241,9 @@
 					if (cnvParams.selectedShape.className !== "Text2d") {
 						$("#selected-shape-opacity-amount").val(ui.value);
 						cnvParams.selectedShape.setOpacity(parseFloat(ui.value));    
-                    } else {
+						} else {
 						//	...
-					}
+						}
 					
 					renderShapes();
 				}				
@@ -300,6 +300,7 @@
 		initial3DShapesRotation = new THREE.Vector3(0.4, 0.5, 0);
 		Shape.prototype.ctx = cnvParams.ctx;
 		Shape.prototype.cnv = cnvParams.cnv;
+		Shape.prototype.cnvParams = cnvParams;
 		Shape.prototype.cnvW = cnvParams.w;
 		Shape.prototype.cnvH = cnvParams.h;
 		Shape.prototype.cnvOffsetX = cnvParams.cnvOffsetX;
@@ -548,8 +549,10 @@
         } else if (cnvParams.selectedShape.className === "Point") {
 					cnvParams.selectedShape.setBoundaryWidth(4);
 				}
-				enableSelectedShapeAttribControls();			
-				prepare3DShapes();
+				enableSelectedShapeAttribControls();
+				if (cnvParams._3DviewEnabled) {
+					prepare3DShapes();
+				}
 				//console.log(shapes);
 				//console.log(shapes_3D);
 				//log(cnvParams.scene.children)
