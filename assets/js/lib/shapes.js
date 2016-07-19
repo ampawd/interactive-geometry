@@ -42,7 +42,7 @@
         this.rotatable = true;
         this.scalable = true;
         this.opacity = 1.0;
-				this.position = new Vec2(0, 0);	//	center of the mass
+		this.position = new Vec2(0, 0);	//	center of the mass
                 
         if (this.className !== "Text2d") {
             this.advancedlines = [];
@@ -60,6 +60,9 @@
     }
     
     Shape.prototype.designations = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+    
+    Shape.nextLetterIndex = 0;
+    Shape.letterIndexMark = 0;
     
     Shape.prototype.usedDesignations = new Map();
     
@@ -234,8 +237,18 @@
         return this.opacity;
     };
     
-    Shape.prototype.resolveDuplicatePoints = function(parent) {
-        
+    Shape.prototype.createLetters = function() {
+        if (Shape.nextLetterIndex >= this.designations.length) {
+            Shape.nextLetterIndex = 0;
+            Shape.letterIndexMark++;
+        }
+        for (var i = 0; i < this.points.length; i++) {
+            if (this.points[i].isVisible && !this.points[i].hasLetter()) {
+                var letter = this.designations[Shape.nextLetterIndex++];
+                this.usedDesignations.set(letter, true);
+                this.points[i].setLetter( letter + (Shape.letterIndexMark ? Shape.letterIndexMark : "") );       
+            }
+        }
     };
     
     Shape.prototype.setRenderAttribs = function(attr) {
@@ -304,7 +317,9 @@
         this.points.push(new Point(p1 || new Vec2(), 2, "#000"));
         this.points.push(new Point(p2 || new Vec2(), 2, "#000"));
         this.points.push(new Point(v1 || new Vec2(), 2, "#000"));
-        this.points.push(new Point(v2 || new Vec2(), 2, "#000")); 
+        this.points.push(new Point(v2 || new Vec2(), 2, "#000"));
+        this.points[2].isVisible = false;
+        this.points[3].isVisible = false;
         this.perpendicular = false;
         this.parallel = false;
         this.bisector = false;
@@ -319,7 +334,7 @@
     Line.prototype.copy = function() {
         let _copyOfThis = new Line( this.points[2].toVec2(), this.points[3].toVec2(),
                                     this.points[0].toVec2(), this.points[1].toVec2(),
-                                    this.color.slice(), this.lineWidth  );
+                                    this.color.slice(),      this.lineWidth  );
         
         for (let entry of this.connectedShapes) {
             if (entry[1].getID() !== this.getID() && entry[1].className !== "Line") {
@@ -1704,6 +1719,7 @@
         this.radius = radius || 2;
         this.fillColor = fillColor || "#000";
         this.isVisible = true;
+        this.letter = "";
     }
     
     Point.count = 0;
@@ -1757,7 +1773,7 @@
     Point.prototype.getID = function() {
         if (!this.ID) {
             Point.count++;
-            this.ID = "point" + Point.count;   
+            this.ID = "point" + Point.count;
         }
         return this.ID;
     };
@@ -1791,12 +1807,16 @@
         return this.letter;
     };
     
+    Point.prototype.hasLetter = function() {
+        return this.letter !== "";
+    };
+    
     Point.prototype.createMeshFromThis = function() {
         var point3D = createPoint3D(5, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
         point3D.name = this.getID();
         this.scene.add(point3D);
         return point3D;
-    };    
+    };
     
     Point.prototype.render = function() {
         if (!this.isVisible) {
@@ -1815,8 +1835,8 @@
         ctx.closePath();
         ctx.restore();
         if (this.letter) {
-            ctx.font = "20px Georgia";
-            ctx.fillText(this.letter, this.x + 5, this.y);
+            ctx.font = "18px Arial";
+            ctx.fillText(this.letter, this.x - 15, this.y + 25);
         }
     };
     
@@ -1960,7 +1980,7 @@
     Text2d.prototype.translate = function(v) {
         this.x = v.x;
         this.y = v.y;
-    };  
+    };
  
     function ArrowedVector(from, to, color, _headLength, _headWidth, addCircle, unit) {
         var parent = new THREE.Object3D(),
@@ -1973,7 +1993,7 @@
             if (addCircle) {
                 parent.add(circle(10, from.x, from.y, from.z, color));				
             }
-                        magnitudeVec.name = "arrowHelper";
+            magnitudeVec.name = "arrowHelper";
         return parent;
     }
     

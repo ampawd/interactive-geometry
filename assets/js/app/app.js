@@ -261,7 +261,12 @@
 					let shapesGroup = cnvParams.selectedShape.connectedShapes;					
 					shapesGroup.forEach(function(sh) {
 						sh.detach(selID);
-					});					
+					});
+					
+//					if (Shape.nextLetterIndex > 0) {
+//                        Shape.nextLetterIndex--;
+//                    }
+					
 					shapes.delete(selID);
 					for (let entry of shapes) {
 						entry[1].connectedShapes.clear();
@@ -291,7 +296,7 @@
 		});
 		
 		$("#selected-shape-delete-btn").attr('disabled', 'disabled');
-  }
+	}
 	
 	function initShapes() {
 		shapes 		  = new Map();
@@ -330,7 +335,7 @@
 	}
 	
 	function disableSelectedShapeAttribControls() {
-    $("#selected-shape").html("");
+		$("#selected-shape").html("");
 		$("#selected-shape-colorpicker").spectrum('disable');
 		$("#selected-shape-colorpicker").spectrum("set", "#000");
 		$("#selected-shape-colorpicker").spectrum("hide");
@@ -338,7 +343,7 @@
 		$("#selected-shape-opacity-slider").slider('value', 1);
 		$("#selected-shape-opacity-slider").slider("disable");
 		$("#selected-shape-delete-btn").attr('disabled', 'disabled');
-  }
+	}
 	
 	function enableSelectedShapeAttribControls() {
 		$("#selected-shape").html(cnvParams.selectedShape.getID());
@@ -348,7 +353,7 @@
 		$("#selected-shape-opacity-slider").slider('value', cnvParams.selectedShape.getOpacity());
 		$("#selected-shape-opacity-slider").slider("enable");
 		$("#selected-shape-delete-btn").removeAttr('disabled');	//	enable delete button
-  }
+	}
 	
 	function setupTools() {
 		$(".buttons, .top-tool, .sub-tools").disableSelection();
@@ -401,13 +406,13 @@
 			cnvParams.ctx.drawImage(cnvImg, 0, 0);
 		};
 		
-    for (let entry of historyData[1]) {
+		for (let entry of historyData[1]) {
 			let shape = shapes.get(entry[0]);
 			if (shape) {				
 				for (let i = 0; i < shape.points.length; i++) {
 					shape.points[i].set(entry[1][i].x, entry[1][i].y);    
 				}				
-      }
+			}
 		}
 //		GeometryEngine.prototype.shapes = shapes;
 //		for (let entry of shapes) {
@@ -419,7 +424,7 @@
 	function saveCurrentTransformStep(same) {
 		if (same) {
 			cnvParams.transformHistory.pop();
-    }
+		}
 		let transformedPoints = new Map(), pointsCopy;
 		for (let entry of shapes) {
 			pointsCopy = [];
@@ -430,7 +435,7 @@
 		}
 		cnvParams.transformHistory.push( [cnvParams.cnv[0].toDataURL(), transformedPoints] );
 		cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
-  }
+	}
 	
 	function setupHistory() {
 		uiParams.reloadBtn.click(function() {
@@ -448,6 +453,8 @@
 			cnvParams.transformHistory = [];
 			Line.count = Ray.count = Segment.count = Vector.count = Polygon.count = 
 			Triangle.count = RegularPolygon.count = Circle.count = Point.count = Text2d.count = 0;
+			Shape.nextLetterIndex = 0;
+			Shape.letterIndexMark = 0;
 		});
 //		uiParams.undoBtn.click(function() {
 //			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
@@ -544,6 +551,7 @@
 				geometryEngine.unEmphasizeShapesPoints();
 				geometryEngine.unEmphasizeShapes();
 				cnvParams.selectedShape = shape;
+				shape.createLetters();
 				if (cnvParams.selectedShape.className !== "Point" && cnvParams.selectedShape.className !== "Text2d") {
 					cnvParams.selectedShape.setBoundaryWidth(2);
 				} else if (cnvParams.selectedShape.className === "Point") {
