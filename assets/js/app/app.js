@@ -19,7 +19,7 @@
 		log = Global.utils.log,
 		getActualWinWidth = Global.utils.getActualWinWidth,
 		radToDeg = Global.math.radToDeg,
-    degToRad = Global.math.degToRad,
+		degToRad = Global.math.degToRad,
 		Shape = Global.shapes.Shape,
 		Line = Global.shapes.Line,
 		Ray = Global.shapes.Ray,
@@ -83,18 +83,18 @@
 		$("#render-canvases").append(cnvParams.renderer.domElement);
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
-  }	
+	}	
 	
 	function prepare3DShapes() {
 		shapes.forEach(function(shape, shapeID) {
 			if (!shapes_3D.has(shapeID) && shape.className !== "Text2d") {
 				var shape_3D = shape.createMeshFromThis();				
 				shapes_3D.set(shapeID, shape_3D);
-      }
+			}
 		});
 		
 		cnvParams.scene.rotation.set(initial3DShapesRotation.x, initial3DShapesRotation.y, initial3DShapesRotation.z);
-  }
+	}
 	
 	function setUpGlobalEvents() {
 		$(window).resize(initParams);
@@ -181,7 +181,7 @@
 					});					
 				});
 				
-      } else {
+			} else {
 				uiParams.projectionSelect.attr("disabled", true);
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
@@ -223,7 +223,7 @@
 						lineWidth: cnvParams.selectedShape.getBoundaryWidth()
 					});					
 					renderShapes();
-        }
+				}
 			},
 			change: function(color) {}
 		});
@@ -241,12 +241,12 @@
 					if (cnvParams.selectedShape.className !== "Text2d") {
 						$("#selected-shape-opacity-amount").val(ui.value);
 						cnvParams.selectedShape.setOpacity(parseFloat(ui.value));    
-						} else {
+					} else {
 						//	...
-						}
+					}
 					
 					renderShapes();
-				}				
+				}			
 			}
 		});
 		
@@ -254,33 +254,33 @@
 		$("#selected-shape-opacity-slider").slider("disable");
 		
 		function deleteShape() {
-      if (cnvParams.selectedShape) {
+			if (cnvParams.selectedShape) {
 				let selID = cnvParams.selectedShape.getID();
 				if (shapes.has(selID)) {
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-          let shapesGroup = cnvParams.selectedShape.connectedShapes;					
+					let shapesGroup = cnvParams.selectedShape.connectedShapes;					
 					shapesGroup.forEach(function(sh) {
 						sh.detach(selID);
 					});					
 					shapes.delete(selID);
 					for (let entry of shapes) {
 						entry[1].connectedShapes.clear();
-            geometryEngine.createConnectedShapesGroup(entry[1]);
-          }
-					
+						geometryEngine.createConnectedShapesGroup(entry[1]);
+					}
+							  
 					if (shapes_3D.has(selID)) {
 						shapes_3D.delete(selID);
-          }
+					}
 					var rObj = cnvParams.scene.getObjectByName(selID);
-					cnvParams.scene.remove(rObj);
-					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
-					renderShapes();
-					cnvParams.selectedShape = 0;
-					disableSelectedShapeAttribControls();
+						cnvParams.scene.remove(rObj);
+						cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+						renderShapes();
+						cnvParams.selectedShape = 0;
+						disableSelectedShapeAttribControls();
 				}
 				//log("after delete ",  cnvParams.scene.children)
-      }
-    }
+			}
+		}
 		
 		$("#selected-shape-delete-btn").click(deleteShape);
 		$("body").keydown(function(e){
@@ -545,8 +545,8 @@
 				geometryEngine.unEmphasizeShapes();
 				cnvParams.selectedShape = shape;
 				if (cnvParams.selectedShape.className !== "Point" && cnvParams.selectedShape.className !== "Text2d") {
-          cnvParams.selectedShape.setBoundaryWidth(2);
-        } else if (cnvParams.selectedShape.className === "Point") {
+					cnvParams.selectedShape.setBoundaryWidth(2);
+				} else if (cnvParams.selectedShape.className === "Point") {
 					cnvParams.selectedShape.setBoundaryWidth(4);
 				}
 				enableSelectedShapeAttribControls();
@@ -586,24 +586,25 @@
 						break;
 					}
 				}
-      }
+			}
+			
 			if (cnvParams.selectedShape) {
 				if (cnvParams.selectedShape.className !== "Point" && cnvParams.selectedShape.className !== "Text2d") {
-          cnvParams.selectedShape.setBoundaryWidth(2);
+					cnvParams.selectedShape.setBoundaryWidth(2);
 				} else if (cnvParams.selectedShape.className === "Point") {
 					cnvParams.selectedShape.setBoundaryWidth(4);
 				}
 				enableSelectedShapeAttribControls();
-      } else {
+			} else {
 				disableSelectedShapeAttribControls();
 				geometryEngine.unEmphasizeShapes();
 				cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 				renderShapes();
 			}
-			
+				  
 			if (!useOldTransformProps) {                	
 				transformProps = geometryEngine.getShapesGroupTransformProps(mdown, true, connectedShapesGroup);
-      }
+			}
 			
 			if (!$.isEmptyObject(transformProps)) {
 				//saveCurrentTransformStep(true);
@@ -661,11 +662,11 @@
 	}
 	
 	function setup() {
-    setUpGlobalEvents();
+		setUpGlobalEvents();
 		setupHistory();
 		setupTools();
 		setUp3D();
-  }
+	}
 	
 	Global.app = Global.app || {
 		initParams : initParams,

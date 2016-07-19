@@ -391,7 +391,7 @@
     
     Line.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
+            return;
         }
         var sh = this.container3.getObjectByName("child" + this.getID());
         var p1 = this.container3.getObjectByName(this.points[0].getID());
@@ -651,7 +651,7 @@
     
     Ray.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
+            return;
         }
         var sh = this.container3.getObjectByName("child" + this.getID());
         var p1 = this.container3.getObjectByName(this.points[0].getID());
@@ -825,7 +825,7 @@
     
     Segment.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
+            return;
         }
         var sh = this.container3.getObjectByName("child" + this.getID());
         var p1 = this.container3.getObjectByName(this.points[0].getID());
@@ -1015,7 +1015,6 @@
     
     Vector.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...");
             return;
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
@@ -1110,7 +1109,7 @@
     
     Polygon.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
+            return;
         }
         var sh = this.container3.getObjectByName("child" + this.getID());
         for (var i = 0; i < sh.geometry.vertices.length; i++) {
@@ -1427,7 +1426,7 @@
     
     RegularPolygon.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
+            return;
         }
         var sh = this.container3.getObjectByName("child" + this.getID());
         for (var i = 0; i < sh.geometry.vertices.length; i++) {
@@ -1631,7 +1630,7 @@
     
     Circle.prototype.transformIn_3D = function() {
         if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
+            return;
         }
         let center = this.points[0];
         for (var i = 0; i < this.points.length; i++) {
@@ -1961,49 +1960,48 @@
         this.x = v.x;
         this.y = v.y;
     };
-        
  
-		function ArrowedVector(from, to, color, _headLength, _headWidth, addCircle, unit) {
-			var parent = new THREE.Object3D(),
-				headLength = _headLength,
-				headWidth = _headWidth,
-				direction = to.clone().sub(from),
-				length = direction.length(),
-				magnitudeVec = new THREE.ArrowHelper(direction.normalize(), from, unit ? 1 : length, color, headLength, headWidth );
-				parent.add( magnitudeVec );
-				if (addCircle) {
-					parent.add(circle(10, from.x, from.y, from.z, color));				
-				}
-							magnitudeVec.name = "arrowHelper";
-			return parent;
-		}
-		
-		function buildSegment(src, dst, colorHex, dashed) {
-			var geom = new THREE.Geometry(), mat, axis;	
-			if (dashed) {
-				mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 5 });
-				geom.vertices.push(src.clone());
-				geom.vertices.push(dst.clone());
-				geom.computeLineDistances();	//	This one is SUPER important, otherwise dashed lines will appear as simple plain lines	
-				axis = new THREE.Line(geom, mat, THREE.LinePieces);
-			} else {
-				mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
-				axis = ArrowedVector(src, dst, colorHex, 50, 10, 0, 0);
-			}
-			return axis;
-		}
-		
-		function createCoordinateSystem(length, position, colorVector) {
-			var axes = new THREE.Object3D();		
-			axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), colorVector.x,  false ) ); // +X
-			axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), colorVector.x, false ) ); // -X
-			axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), colorVector.y,  false ) ); // +Y
-			axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, -length, 0 ), colorVector.y, false ) ); // -Y
-			axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, length ), colorVector.z,  false ) ); // +Z
-			axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -length ), colorVector.z, false ) ); // -Z		
-			axes.position.set(position && position.x || 0, position && position.y || 0, position && position.z || 0);	
-			return axes;
-		}
+    function ArrowedVector(from, to, color, _headLength, _headWidth, addCircle, unit) {
+        var parent = new THREE.Object3D(),
+            headLength = _headLength,
+            headWidth = _headWidth,
+            direction = to.clone().sub(from),
+            length = direction.length(),
+            magnitudeVec = new THREE.ArrowHelper(direction.normalize(), from, unit ? 1 : length, color, headLength, headWidth );
+            parent.add( magnitudeVec );
+            if (addCircle) {
+                parent.add(circle(10, from.x, from.y, from.z, color));				
+            }
+                        magnitudeVec.name = "arrowHelper";
+        return parent;
+    }
+    
+    function buildSegment(src, dst, colorHex, dashed) {
+        var geom = new THREE.Geometry(), mat, axis;	
+        if (dashed) {
+            mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 5 });
+            geom.vertices.push(src.clone());
+            geom.vertices.push(dst.clone());
+            geom.computeLineDistances();	//	This one is SUPER important, otherwise dashed lines will appear as simple plain lines	
+            axis = new THREE.Line(geom, mat, THREE.LinePieces);
+        } else {
+            mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
+            axis = ArrowedVector(src, dst, colorHex, 50, 10, 0, 0);
+        }
+        return axis;
+    }
+    
+    function createCoordinateSystem(length, position, colorVector) {
+        var axes = new THREE.Object3D();		
+        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), colorVector.x,  false ) ); // +X
+        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), colorVector.x, false ) ); // -X
+        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), colorVector.y,  false ) ); // +Y
+        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, -length, 0 ), colorVector.y, false ) ); // -Y
+        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, length ), colorVector.z,  false ) ); // +Z
+        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -length ), colorVector.z, false ) ); // -Z		
+        axes.position.set(position && position.x || 0, position && position.y || 0, position && position.z || 0);	
+        return axes;
+    }
     
     function createPoint3D(radius, v) {
         var point3DGeom = new THREE.SphereGeometry( radius, 32, 32 );
