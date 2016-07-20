@@ -52,6 +52,8 @@
 		cnvParams.scene = new THREE.Scene();
 		cnvParams._3DviewEnabled = false;
 		
+		cnvParams.cnv2DOverlayContext = $("#canvas2DOverlay")[0].getContext('2d');
+		
 		cnvParams.transformHistory = [];
 		cnvParams.historyIndex = 0;
 		uiParams.topTools = $('.top-tool');
@@ -88,7 +90,7 @@
 	function prepare3DShapes() {
 		shapes.forEach(function(shape, shapeID) {
 			if (!shapes_3D.has(shapeID) && shape.className !== "Text2d") {
-				var shape_3D = shape.createMeshFromThis();				
+				var shape_3D = shape.createMeshFromThis();
 				shapes_3D.set(shapeID, shape_3D);
 			}
 		});
@@ -121,6 +123,10 @@
 				cnvParams.renderer.setClearColor(0xffffff, 1);
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				$(cnvParams.renderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
+				
+				$("#canvas2DOverlay").attr("width", cnv3DWidth);
+				$("#canvas2DOverlay").attr("height", cnvParams.h);
+				$("#canvas2DOverlay").css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});				
 				var scene = cnvParams.scene;
 				var	renderer = cnvParams.renderer;
 				var light1 = new THREE.PointLight(0xffffff, 1, 5000);
@@ -136,14 +142,20 @@
 				scene.add(light2);
 				scene.add(coordSystem);				
 				
-				Shape.prototype.cnvW = cnvParams.w;
+				Shape.prototype.cnvW = cnv3DWidth;
+				Shape.prototype.camera = cnvParams.camera;
+				
 				prepare3DShapes();
-				renderer.render(scene,  cnvParams.camera);				
+				scene.children[3].matrixWorldNeedsUpdate = true;
+				renderer.render(scene,  cnvParams.camera);			//	initial rendering		
 				cnvParams.cnv3D.off("mousedown");
 				cnvParams.cnv3D.off("mousemove");
 				cnvParams.cnv3D.off("mouseup");
+				$("#canvas2DOverlay").off("mousedown");
+				$("#canvas2DOverlay").off("mousemove");
+				$("#canvas2DOverlay").off("mouseup");
 				var _90deginRad = Math.PI * 0.5;
-				cnvParams.cnv3D.mousedown(function(e) {
+				var onmousedown = function(e) {
 					var mouse = new Vec2(),
 						lastX, lastY;
 						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
@@ -152,7 +164,7 @@
 						diffX, diffY,
 						rx, ry;
 					
-					cnvParams.cnv3D.mousemove(function(e) {
+					var onmmove = function(e) {
 						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
 						diffX = mouse.x - lastX;
 						diffY = mouse.y - lastY;
@@ -167,19 +179,30 @@
 						if (scene.rotation.x < -_90deginRad) {
 							scene.rotation.x = -_90deginRad;
 						}
-						scene.rotation.y += ry;
 						
+						//scene.children[3].matrixWorldNeedsUpdate = true;
+						//log(scene.children[3].matrixWorld);
+						scene.rotation.y += ry;
 						renderer.render(scene,  cnvParams.camera);
 						lastX = mouse.x;
 						lastY = mouse.y;
-					});
-					
-					cnvParams.cnv3D.mouseup(function(e) {
+					}
+					var onmup = function(e) {
 						cnvParams.cnv3D.off("mousemove");
 						cnvParams.cnv3D.off("mouseup");
+						$("#canvas2DOverlay").off("mousemove");
+						$("#canvas2DOverlay").off("mouseup");	
 						initial3DShapesRotation.set(scene.rotation.x, scene.rotation.y, 0);
-					});					
-				});
+						Shape.prototype.camera = cnvParams.camera;
+					}
+					
+					cnvParams.cnv3D.mousemove(onmmove);
+					$("#canvas2DOverlay").mousemove(onmmove);					
+					cnvParams.cnv3D.mouseup(onmup);
+					$("#canvas2DOverlay").mouseup(onmup);
+				}
+				cnvParams.cnv3D.mousedown(onmousedown);
+				$("#canvas2DOverlay").mousedown(onmousedown);
 				
 			} else {
 				uiParams.projectionSelect.attr("disabled", true);
@@ -283,7 +306,6 @@
 						cnvParams.selectedShape = 0;
 						disableSelectedShapeAttribControls();
 				}
-				//log("after delete ",  cnvParams.scene.children)
 			}
 		}
 		
@@ -302,16 +324,18 @@
 		shapes 		  = new Map();
 		shapes_3D	  = new Map();
 		deletedShapes = new Map();
-		initial3DShapesRotation = new THREE.Vector3(0.4, 0.5, 0);
+		initial3DShapesRotation = new THREE.Vector3(0.4, 0.5, 0.0);
 		Shape.prototype.ctx = cnvParams.ctx;
 		Shape.prototype.cnv = cnvParams.cnv;
 		Shape.prototype.cnvParams = cnvParams;
+		Shape.prototype.cnv2DOverlayContext = cnvParams.cnv2DOverlayContext;
 		Shape.prototype.cnvW = cnvParams.w;
 		Shape.prototype.cnvH = cnvParams.h;
 		Shape.prototype.cnvOffsetX = cnvParams.cnvOffsetX;
 		Shape.prototype.cnvOffsetY = cnvParams.cnvOffsetY;
 		Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
 		Shape.prototype.scene = cnvParams.scene;
+		Shape.prototype.camera = cnvParams.camera;
 		Shape.prototype.shapes = shapes;
 		Shape.prototype.geometryEngine = new GeometryEngine();
 	}
@@ -440,6 +464,7 @@
 	function setupHistory() {
 		uiParams.reloadBtn.click(function() {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);	
 			resetUIToDefaults();
 			disableSelectedShapeAttribControls();
 			offHandlers();

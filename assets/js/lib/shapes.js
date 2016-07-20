@@ -394,11 +394,18 @@
         lineMesh.name = "child" + this.getID();
         var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
         var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+               
+        //this.cnv2DOverlayContext.font="20px Arial";
+        //var pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
+        //this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y)
+        //pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
+        //this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y)
+        
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
         parent.add(lineMesh);
-        parent.name = this.getID();        
+        parent.name = this.getID();   
         this.container3 = parent;
         this.scene.add(parent);
         return parent;
@@ -2024,12 +2031,39 @@
         return axes;
     }
     
+    function createTextTHREE(text, size) {
+		var textShapes = THREE.FontUtils.generateShapes( text,	{
+				'font': 		 'helvetiker',
+				'weight': 		 'normal',
+				'style': 		 'normal',
+				'size': 		 size,
+				'curveSegments': 300
+			}
+		);
+		var textg = new THREE.ShapeGeometry( textShapes );
+		var textMesh = new THREE.Mesh( textg, new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } ) ) ;
+		
+		//var text_geo = new THREE.TextGeometry(text, {size: size, weight: "normal"});		
+		//var text_mat = new THREE.MeshBasicMaterial({color: "black"});		
+		//var textMesh = new THREE.Mesh(text_geo, text_mat);
+		return textMesh;
+	}
+    
     function createPoint3D(radius, v) {
         var point3DGeom = new THREE.SphereGeometry( radius, 32, 32 );
         var mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
         var point3D = new THREE.Mesh( point3DGeom, mat );
         point3D.position.set(v.x || 0, v.y || 0, v.z || 0);
         return point3D;
+    }
+    
+    function toScreenXY(position, cnvW, cnvH, camera)  {
+        var pos = position.clone();
+        var projScreenMat = new THREE.Matrix4();
+        projScreenMat.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+        pos.applyProjection(projScreenMat);
+        var out = {x : (pos.x + 1) * cnvW / 2, y: (-pos.y + 1) * cnvH / 2 };
+        return out;
     }
     
     function containsP(v, x, y) {
