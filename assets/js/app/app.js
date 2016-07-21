@@ -7,6 +7,8 @@
 	
 	let cnvParams,
 		uiParams,
+		cameraParams,
+		updateCamera,
 		shapes,
 		shapes_3D,
 		initial3DShapesRotation,
@@ -76,7 +78,17 @@
 		cnvParams.h = cnvParams.cnv.height();
 		cnvParams.cnvOffsetX = (actualWindowWidth - cnvParams.w) / 2,
 		cnvParams.cnvOffsetY = uiParams.topToolsContainerFullHeight;
-		cnvParams.cnv.css({"left": cnvParams.cnvOffsetX, "top": cnvParams.cnvOffsetY});		
+		cnvParams.cnv.css({"left": cnvParams.cnvOffsetX, "top": cnvParams.cnvOffsetY});
+		cameraParams = {
+			distance : 1,
+			newTarget: new THREE.Vector3(),
+			mdown:	   new THREE.Vector2(),
+			mmove: 	   new THREE.Vector2(),
+			phi:   	   25,
+			theta:	  -15,
+			phim:	   0,
+			thetam:	  0
+		}
 		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
 	}
 	
@@ -85,23 +97,30 @@
 		$("#render-canvases").append(cnvParams.renderer.domElement);
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
+		updateCamera = function() {
+			cnvParams.camera.position.x = cameraParams.distance * Math.sin(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);
+			cnvParams.camera.position.y = cameraParams.distance * Math.sin(cameraParams.phi * degToRad);
+			cnvParams.camera.position.z = cameraParams.distance * Math.cos(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);						
+			cameraParams.newTarget.set(-cnvParams.camera.position.x, -cnvParams.camera.position.y, -cnvParams.camera.position.z);
+			cnvParams.camera.lookAt(cameraParams.newTarget);
+		};
 	}	
 	
 	function prepare3DShapes() {
 		shapes.forEach(function(shape, shapeID) {
 			if (!shapes_3D.has(shapeID) && shape.className !== "Text2d") {
-				var shape_3D = shape.createMeshFromThis();
+				let shape_3D = shape.createMeshFromThis();
 				shapes_3D.set(shapeID, shape_3D);
 			}
 		});
-		
-		cnvParams.scene.rotation.set(initial3DShapesRotation.x, initial3DShapesRotation.y, initial3DShapesRotation.z);
 	}
 	
 	function setUpGlobalEvents() {
 		$(window).resize(initParams);
-		let factor = 2, bothCanvasesWidth = cnvParams.w, cnv3DWidth;
-				
+		let factor = 2,
+			bothCanvasesWidth = cnvParams.w,
+			cnv3DWidth;
+		
 		uiParams._3dviewCheckBox.click(function(e) {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			if (uiParams._3dviewCheckBox.is(':checked')) {
@@ -114,8 +133,10 @@
 				if (uiParams.projectionSelect.val() === "persp") {
 					cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
 					cnvParams.camera.position.z = 1900;
+					cameraParams.distance = cnvParams.camera.position.length();
 				} else {
 					cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
+					cameraParams.distance = 1;
 				}
 				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));					
 				
@@ -127,11 +148,11 @@
 				$("#canvas2DOverlay").attr("width", cnv3DWidth);
 				$("#canvas2DOverlay").attr("height", cnvParams.h);
 				$("#canvas2DOverlay").css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});				
-				var scene = cnvParams.scene;
-				var	renderer = cnvParams.renderer;
-				var light1 = new THREE.PointLight(0xffffff, 1, 5000);
-				var light2 = new THREE.PointLight(0xffffff, 1, 5000);
-				var coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
+				let scene = cnvParams.scene;
+				let	renderer = cnvParams.renderer;
+				let light1 = new THREE.PointLight(0xffffff, 1, 5000);
+				let light2 = new THREE.PointLight(0xffffff, 1, 5000);
+				let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
 				light1.name = "light1"; light2.name = "light2";
 				coordSystem.name = "coordSystem";
 				light1.position.set(500, 500, 700);
@@ -146,7 +167,7 @@
 				Shape.prototype.camera = cnvParams.camera;
 				
 				prepare3DShapes();
-				scene.children[3].matrixWorldNeedsUpdate = true;
+				updateCamera();
 				renderer.render(scene,  cnvParams.camera);			//	initial rendering		
 				cnvParams.cnv3D.off("mousedown");
 				cnvParams.cnv3D.off("mousemove");
@@ -154,45 +175,27 @@
 				$("#canvas2DOverlay").off("mousedown");
 				$("#canvas2DOverlay").off("mousemove");
 				$("#canvas2DOverlay").off("mouseup");
-				var _90deginRad = Math.PI * 0.5;
-				var onmousedown = function(e) {
-					var mouse = new Vec2(),
-						lastX, lastY;
-						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
-					var lastX = mouse.x,
-						lastY = mouse.y,
-						diffX, diffY,
-						rx, ry;
 					
-					var onmmove = function(e) {
-						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
-						diffX = mouse.x - lastX;
-						diffY = mouse.y - lastY;
+				let onmousedown = function(e) {
+					cameraParams.mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
+					cameraParams.thetam = cameraParams.theta;
+					cameraParams.phim = cameraParams.phi;
 						
-						rx = diffY / 200;
-						ry = diffX / 200;
+					let onmmove = function(e) {
+						cameraParams.mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
+
+						cameraParams.theta = -(cameraParams.mmove.x - cameraParams.mdown.x) * 0.2 + cameraParams.thetam;
+						cameraParams.phi = (cameraParams.mmove.y - cameraParams.mdown.y) * 0.2 + cameraParams.phim;
+						cameraParams.phi = Math.min( 90, Math.max( 0, cameraParams.phi ) );
 						
-						scene.rotation.x += rx;
-						if (scene.rotation.x > _90deginRad) {
-							scene.rotation.x = _90deginRad;
-						}
-						if (scene.rotation.x < -_90deginRad) {
-							scene.rotation.x = -_90deginRad;
-						}
-						
-						//scene.children[3].matrixWorldNeedsUpdate = true;
-						//log(scene.children[3].matrixWorld);
-						scene.rotation.y += ry;
+						updateCamera();
 						renderer.render(scene,  cnvParams.camera);
-						lastX = mouse.x;
-						lastY = mouse.y;
 					}
-					var onmup = function(e) {
+					let onmup = function(e) {
 						cnvParams.cnv3D.off("mousemove");
 						cnvParams.cnv3D.off("mouseup");
 						$("#canvas2DOverlay").off("mousemove");
 						$("#canvas2DOverlay").off("mouseup");	
-						initial3DShapesRotation.set(scene.rotation.x, scene.rotation.y, 0);
 						Shape.prototype.camera = cnvParams.camera;
 					}
 					
@@ -223,13 +226,15 @@
 				cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
 				cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
 				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));
+				cameraParams.distance = 1;
 			
 			} else if ($(this).val() === "persp") {
 				cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
 				cnvParams.camera.position.z = 1900;
+				cameraParams.distance = cnvParams.camera.position.length();
 			}
 			
-			cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));
+			updateCamera();
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 		});
 		
@@ -299,7 +304,7 @@
 					if (shapes_3D.has(selID)) {
 						shapes_3D.delete(selID);
 					}
-					var rObj = cnvParams.scene.getObjectByName(selID);
+					let rObj = cnvParams.scene.getObjectByName(selID);
 						cnvParams.scene.remove(rObj);
 						cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 						renderShapes();
@@ -311,7 +316,7 @@
 		
 		$("#selected-shape-delete-btn").click(deleteShape);
 		$("body").keydown(function(e){
-			var letter = String.fromCharCode(e.which);
+			let letter = String.fromCharCode(e.which);
 			if (e.keyCode === 46) {
 				deleteShape();
 			}
@@ -572,6 +577,7 @@
 					log("shape is not created");
 					return;
 				}
+				//updateCamera();
 				shapes.set(shape.getID(), shape);
 				geometryEngine.unEmphasizeShapesPoints();
 				geometryEngine.unEmphasizeShapes();
@@ -586,9 +592,6 @@
 				if (cnvParams._3DviewEnabled) {
 					prepare3DShapes();
 				}
-				//console.log(shapes);
-				//console.log(shapes_3D);
-				//log(cnvParams.scene.children)
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				renderShapes();
 				return;

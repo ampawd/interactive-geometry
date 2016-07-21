@@ -242,9 +242,9 @@
             Shape.nextLetterIndex = 0;
             Shape.letterIndexMark++;
         }
-        for (var i = 0; i < this.points.length; i++) {
+        for (let i = 0; i < this.points.length; i++) {
             if (this.points[i].isVisible && !this.points[i].hasLetter()) {
-                var letter = this.designations[Shape.nextLetterIndex++];
+                let letter = this.designations[Shape.nextLetterIndex++];
                 this.usedDesignations.set(letter, true);
                 this.points[i].setLetter( letter + (Shape.letterIndexMark ? Shape.letterIndexMark : "") );       
             }
@@ -381,7 +381,7 @@
     };
     
     Line.prototype.createMeshFromThis = function() {
-        var lineGeometry = new THREE.Geometry(),
+        let lineGeometry = new THREE.Geometry(),
             lineMaterial,
             lineMesh, parent;
         parent = new THREE.Object3D();
@@ -392,14 +392,14 @@
         lineMaterial = new THREE.LineBasicMaterial({color: new THREE.Color(this.color).getHex()});
         lineMesh = new THREE.Line(lineGeometry, lineMaterial);
         lineMesh.name = "child" + this.getID();
-        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
-               
-        //this.cnv2DOverlayContext.font="20px Arial";
-        //var pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
-        //this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y)
-        //pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
-        //this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y)
+        
+        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));       
+        this.cnv2DOverlayContext.font="20px Arial";
+        let pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y)
+        pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y)
         
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
@@ -415,9 +415,9 @@
         if (!this.container3) {
             return;
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(this.points[0].getID());
-        var p2 = this.container3.getObjectByName(this.points[1].getID());
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        let p1 = this.container3.getObjectByName(this.points[0].getID());
+        let p2 = this.container3.getObjectByName(this.points[1].getID());
         for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x - this.cnvW/2;
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
@@ -588,7 +588,7 @@
     };
     
     Ray.prototype.createMeshFromThis = function() {
-        var rayGeometry = new THREE.Geometry(),
+        let rayGeometry = new THREE.Geometry(),
             rayMaterial,
             rayMesh, parent;
         rayGeometry.vertices.push(new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
@@ -598,8 +598,8 @@
         parent = new THREE.Object3D();
         parent.add(rayMesh);
         rayMesh.name = "child" + this.getID();
-        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        var p2 = createPoint3D(5, new THREE.Vector3(this.points[2].x - this.cnvW/2, 0, this.points[2].y - this.cnvH/2));
+        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(5, new THREE.Vector3(this.points[2].x - this.cnvW/2, 0, this.points[2].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[2].getID();
         parent.add(p1); parent.add(p2);
@@ -675,10 +675,10 @@
         if (!this.container3) {
             return;
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(this.points[0].getID());
-        var p2 = this.container3.getObjectByName(this.points[2].getID());
-        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        let p1 = this.container3.getObjectByName(this.points[0].getID());
+        let p2 = this.container3.getObjectByName(this.points[2].getID());
+        for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x - this.cnvW/2;
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
         }
@@ -849,10 +849,10 @@
         if (!this.container3) {
             return;
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(this.points[0].getID());
-        var p2 = this.container3.getObjectByName(this.points[1].getID());
-        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        let p1 = this.container3.getObjectByName(this.points[0].getID());
+        let p2 = this.container3.getObjectByName(this.points[1].getID());
+        for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x - this.cnvW/2;
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
         }
@@ -893,7 +893,7 @@
     };
     
     Segment.prototype.createMeshFromThis = function() {
-        var segmentGeometry = new THREE.Geometry(),
+        let segmentGeometry = new THREE.Geometry(),
             segmentMaterial,
             segmentMesh, parent;
         segmentGeometry.vertices.push(new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
@@ -903,8 +903,8 @@
         segmentMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(segmentMesh);
-        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
@@ -989,14 +989,14 @@
     };
     
     Vector.prototype.createMeshFromThis = function() {
-        var hexColor = new THREE.Color(this.color).getHex(), parent;
-        var vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2), 
+        let hexColor = new THREE.Color(this.color).getHex(), parent;
+        let vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2), 
 					new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2), hexColor, 70, 15);
         vectorMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(vectorMesh);
-        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        var p2 = createPoint3D(3, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(3, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
@@ -1041,8 +1041,8 @@
             return;
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
-        var p1 = this.container3.getObjectByName(this.points[0].getID());
-        var p2 = this.container3.getObjectByName(this.points[1].getID());
+        let p1 = this.container3.getObjectByName(this.points[0].getID());
+        let p2 = this.container3.getObjectByName(this.points[1].getID());
         p1.position.set(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2);
         p2.position.set(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2);
     };
@@ -1134,11 +1134,11 @@
         if (!this.container3) {
             return;
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x - this.cnvW/2;
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
-            var p = this.container3.getObjectByName(this.points[i].getID());
+            let p = this.container3.getObjectByName(this.points[i].getID());
             p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
         }
         sh.geometry.verticesNeedUpdate = true;
@@ -1192,9 +1192,9 @@
     };
     
     Polygon.prototype.createMeshFromThis = function() {
-        var polygonShape = new THREE.Shape();
-        var points = this.points;
-        var temp, parent = new THREE.Object3D(), p;
+        let polygonShape = new THREE.Shape();
+        let points = this.points;
+        let temp, parent = new THREE.Object3D(), p;
         
         polygonShape.moveTo(points[0].x - this.cnvW/2, points[0].y - this.cnvH/2);
         p = createPoint3D(5, new THREE.Vector3(points[0].x - this.cnvW/2, 0, points[0].y - this.cnvH/2));
@@ -1206,14 +1206,14 @@
             p.name = points[i].getID();
             parent.add(p);
         }
-        var polygonGeom = new THREE.ShapeGeometry(polygonShape);
-        for (var i = 0; i < polygonGeom.vertices.length; i++) {	//	maping to xz plane
+        let polygonGeom = new THREE.ShapeGeometry(polygonShape);
+        for (let i = 0; i < polygonGeom.vertices.length; i++) {	//	maping to xz plane
             temp = polygonGeom.vertices[i].y;
             polygonGeom.vertices[i].y = 0;
             polygonGeom.vertices[i].z = temp;
         }
-        var hexColor = new THREE.Color(this.renderParams.fillColor).getHex();
-        var polygonMesh = new THREE.Mesh(polygonGeom, new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide }));
+        let hexColor = new THREE.Color(this.renderParams.fillColor).getHex();
+        let polygonMesh = new THREE.Mesh(polygonGeom, new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide }));
         polygonMesh.name = "child" + this.getID();
         parent.add(polygonMesh);
         parent.name = this.getID();
@@ -1451,11 +1451,11 @@
         if (!this.container3) {
             return;
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        for (var i = 0; i < sh.geometry.vertices.length; i++) {
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x - this.cnvW/2;
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
-            var p = this.container3.getObjectByName(this.points[i].getID());
+            let p = this.container3.getObjectByName(this.points[i].getID());
             p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
         }
         sh.geometry.verticesNeedUpdate = true;
@@ -1563,17 +1563,17 @@
     };
     
     Circle.prototype.createMeshFromThis = function() {
-        var circleGeometry = new THREE.Geometry(), parent = new THREE.Object3D();
-        for (var alpha = 0; alpha <= 360; alpha++) {
+        let circleGeometry = new THREE.Geometry(), parent = new THREE.Object3D();
+        for (let alpha = 0; alpha <= 360; alpha++) {
             circleGeometry.vertices.push(new THREE.Vector3(this.R * Math.cos(alpha * degToRad), 0, this.R * Math.sin(alpha*degToRad)));
         }
-        var mat = new THREE.LineBasicMaterial( {color: new THREE.Color(this.strokeStyle).getHex() } );
-        var circleMesh = new THREE.Line(circleGeometry, mat);
+        let mat = new THREE.LineBasicMaterial( {color: new THREE.Color(this.strokeStyle).getHex() } );
+        let circleMesh = new THREE.Line(circleGeometry, mat);
         circleMesh.name = "child" + this.getID();
         circleMesh.position.set(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2);
-        var p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
         p1.name = this.points[0].getID();
-        var p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
         parent.add(circleMesh);
@@ -1656,12 +1656,12 @@
             return;
         }
         let center = this.points[0];
-        for (var i = 0; i < this.points.length; i++) {
-            var p = this.container3.getObjectByName(this.points[i].getID());
+        for (let i = 0; i < this.points.length; i++) {
+            let p = this.container3.getObjectByName(this.points[i].getID());
             p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
         }
-        var sh = this.container3.getObjectByName("child" + this.getID());
-        for (var alpha = 0, i = 0; alpha <= 360; alpha++) {
+        let sh = this.container3.getObjectByName("child" + this.getID());
+        for (let alpha = 0, i = 0; alpha <= 360; alpha++) {
             sh.geometry.vertices[i].x = this.R * Math.cos(alpha * degToRad);
             sh.geometry.vertices[i].y = 0;
             sh.geometry.vertices[i++].z = this.R * Math.sin(alpha*degToRad);
@@ -1819,7 +1819,7 @@
     };
     
     Point.prototype.createMeshFromThis = function() {
-        var point3D = createPoint3D(5, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
+        let point3D = createPoint3D(5, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
         point3D.name = this.getID();
         this.scene.add(point3D);
         return point3D;
@@ -1869,7 +1869,7 @@
     };
     
     Point.prototype.transformIn_3D = function() {
-        var sh = this.scene.getObjectByName(this.getID());
+        let sh = this.scene.getObjectByName(this.getID());
         if (sh) {
             sh.position.set(this.x - this.cnvW/2, 0, this.y - this.cnvH/2);    
         }
@@ -1990,7 +1990,7 @@
     };
  
     function ArrowedVector(from, to, color, _headLength, _headWidth, addCircle, unit) {
-        var parent = new THREE.Object3D(),
+        let parent = new THREE.Object3D(),
             headLength = _headLength,
             headWidth = _headWidth,
             direction = to.clone().sub(from),
@@ -2005,7 +2005,7 @@
     }
     
     function buildSegment(src, dst, colorHex, dashed) {
-        var geom = new THREE.Geometry(), mat, axis;	
+        let geom = new THREE.Geometry(), mat, axis;	
         if (dashed) {
             mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 5 });
             geom.vertices.push(src.clone());
@@ -2020,7 +2020,7 @@
     }
     
     function createCoordinateSystem(length, position, colorVector) {
-        var axes = new THREE.Object3D();		
+        let axes = new THREE.Object3D();		
         axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), colorVector.x,  false ) ); // +X
         axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), colorVector.x, false ) ); // -X
         axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), colorVector.y,  false ) ); // +Y
@@ -2032,7 +2032,7 @@
     }
     
     function createTextTHREE(text, size) {
-		var textShapes = THREE.FontUtils.generateShapes( text,	{
+		let textShapes = THREE.FontUtils.generateShapes( text,	{
 				'font': 		 'helvetiker',
 				'weight': 		 'normal',
 				'style': 		 'normal',
@@ -2040,29 +2040,29 @@
 				'curveSegments': 300
 			}
 		);
-		var textg = new THREE.ShapeGeometry( textShapes );
-		var textMesh = new THREE.Mesh( textg, new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } ) ) ;
+		let textg = new THREE.ShapeGeometry( textShapes );
+		let textMesh = new THREE.Mesh( textg, new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } ) ) ;
 		
-		//var text_geo = new THREE.TextGeometry(text, {size: size, weight: "normal"});		
-		//var text_mat = new THREE.MeshBasicMaterial({color: "black"});		
-		//var textMesh = new THREE.Mesh(text_geo, text_mat);
+		//let text_geo = new THREE.TextGeometry(text, {size: size, weight: "normal"});		
+		//let text_mat = new THREE.MeshBasicMaterial({color: "black"});		
+		//let textMesh = new THREE.Mesh(text_geo, text_mat);
 		return textMesh;
 	}
     
     function createPoint3D(radius, v) {
-        var point3DGeom = new THREE.SphereGeometry( radius, 32, 32 );
-        var mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
-        var point3D = new THREE.Mesh( point3DGeom, mat );
+        let point3DGeom = new THREE.SphereGeometry( radius, 32, 32 );
+        let mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
+        let point3D = new THREE.Mesh( point3DGeom, mat );
         point3D.position.set(v.x || 0, v.y || 0, v.z || 0);
         return point3D;
     }
     
     function toScreenXY(position, cnvW, cnvH, camera)  {
-        var pos = position.clone();
-        var projScreenMat = new THREE.Matrix4();
+        let pos = position.clone();
+        let projScreenMat = new THREE.Matrix4();
         projScreenMat.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
         pos.applyProjection(projScreenMat);
-        var out = {x : (pos.x + 1) * cnvW / 2, y: (-pos.y + 1) * cnvH / 2 };
+        let out = {x : (pos.x + 1) * cnvW / 2, y: (-pos.y + 1) * cnvH / 2 };
         return out;
     }
     
