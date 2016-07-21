@@ -11,7 +11,6 @@
 		updateCamera,
 		shapes,
 		shapes_3D,
-		initial3DShapesRotation,
 		deletedShapes,
 		percent,
 		actualWindowWidth,
@@ -54,7 +53,8 @@
 		cnvParams.scene = new THREE.Scene();
 		cnvParams._3DviewEnabled = false;
 		
-		cnvParams.cnv2DOverlayContext = $("#canvas2DOverlay")[0].getContext('2d');
+		cnvParams.cnv2DOverlay = $("#canvas2DOverlay");
+		cnvParams.cnv2DOverlayContext = cnvParams.cnv2DOverlay[0].getContext('2d');
 		
 		cnvParams.transformHistory = [];
 		cnvParams.historyIndex = 0;
@@ -87,8 +87,8 @@
 			phi:   	   25,
 			theta:	  -15,
 			phim:	   0,
-			thetam:	  0
-		}
+			thetam:	   0
+		};
 		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
 	}
 	
@@ -103,6 +103,7 @@
 			cnvParams.camera.position.z = cameraParams.distance * Math.cos(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);						
 			cameraParams.newTarget.set(-cnvParams.camera.position.x, -cnvParams.camera.position.y, -cnvParams.camera.position.z);
 			cnvParams.camera.lookAt(cameraParams.newTarget);
+			Shape.prototype.camera = cnvParams.camera;
 		};
 	}	
 	
@@ -144,9 +145,9 @@
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				$(cnvParams.renderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
 				
-				$("#canvas2DOverlay").attr("width", cnv3DWidth);
-				$("#canvas2DOverlay").attr("height", cnvParams.h);
-				$("#canvas2DOverlay").css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});				
+				cnvParams.cnv2DOverlay.attr("width", cnv3DWidth);
+				cnvParams.cnv2DOverlay.attr("height", cnvParams.h);
+				cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});				
 				let scene = cnvParams.scene;
 				let	renderer = cnvParams.renderer;
 				let light1 = new THREE.PointLight(0xffffff, 1, 5000);
@@ -185,6 +186,9 @@
 						cameraParams.phi = Math.min( 90, Math.max( 0, cameraParams.phi ) );
 						
 						updateCamera();
+						
+						cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+						shapes.forEach(function(shape) { shape.projectAndDrawLetters(); });
 						renderer.render(scene,  cnvParams.camera);
 					}
 					let onmup = function(e) {
@@ -212,6 +216,9 @@
 				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent) / 100 );
 				cnvParams.w = cnvParams.cnv.width();				
 				cnvParams.renderer.setSize(0, 0);
+				cnvParams.cnv2DOverlay.attr("width", 1);
+				cnvParams.cnv2DOverlay.attr("height", 1);
+				cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			}
 			Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
 			renderShapes();
@@ -282,6 +289,8 @@
 				let selID = cnvParams.selectedShape.getID();
 				if (shapes.has(selID)) {
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+					
 					let shapesGroup = cnvParams.selectedShape.connectedShapes;					
 					shapesGroup.forEach(function(sh) {
 						sh.detach(selID);
@@ -291,6 +300,7 @@
 //                        Shape.nextLetterIndex--;
 //                    }
 					
+					//shapes.get(selID).points.forEach(function(p) { p.setLetter(""); });
 					shapes.delete(selID);
 					for (let entry of shapes) {
 						entry[1].connectedShapes.clear();
@@ -300,6 +310,7 @@
 					if (shapes_3D.has(selID)) {
 						shapes_3D.delete(selID);
 					}
+					
 					let rObj = cnvParams.scene.getObjectByName(selID);
 						cnvParams.scene.remove(rObj);
 						cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
@@ -524,6 +535,7 @@
 	
 	function emphasizeShapes(e) {
 		let mmove = new Vec2();
+		cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 		mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
 		cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);		
 		geometryEngine.emphasizeShapes(mmove);
@@ -572,7 +584,6 @@
 					log("shape is not created");
 					return;
 				}
-				//updateCamera();
 				shapes.set(shape.getID(), shape);
 				geometryEngine.unEmphasizeShapesPoints();
 				geometryEngine.unEmphasizeShapes();
@@ -584,9 +595,12 @@
 					cnvParams.selectedShape.setBoundaryWidth(4);
 				}
 				enableSelectedShapeAttribControls();
+				updateCamera();
 				if (cnvParams._3DviewEnabled) {
 					prepare3DShapes();
 				}
+				
+				Shape.prototype.cnv2DOverlayContext.font = "20px Arial";
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				renderShapes();
 				return;
@@ -643,6 +657,7 @@
 				cnvParams.cnv.mousemove(function(e) {
 					mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 					geometryEngine.transformShapes(transformProps, mdown, mmove);
 					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();

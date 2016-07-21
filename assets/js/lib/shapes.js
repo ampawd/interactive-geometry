@@ -43,6 +43,8 @@
         this.scalable = true;
         this.opacity = 1.0;
 		this.position = new Vec2(0, 0);	//	center of the mass
+
+        this.cnv2DOverlayContext.font = "20px Arial";
                 
         if (this.className !== "Text2d") {
             this.advancedlines = [];
@@ -62,6 +64,7 @@
     Shape.prototype.designations = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
     
     Shape.nextLetterIndex = 0;
+    
     Shape.letterIndexMark = 0;
     
     Shape.prototype.usedDesignations = new Map();
@@ -251,6 +254,10 @@
         }
     };
     
+    Shape.prototype.projectAndDrawLetters = function() {
+        throw("Abstract method can't be called");  
+    };
+    
     Shape.prototype.setRenderAttribs = function(attr) {
         throw("Abstract method can't be called");
     };  
@@ -380,6 +387,19 @@
         return this.lineWidth;
     };
     
+    Line.prototype.projectAndDrawLetters = function() {
+		if (!this.container3) {
+            return;
+        }
+        
+        var p1 = this.container3.getObjectByName(this.points[0].getID());
+        var p2 = this.container3.getObjectByName(this.points[1].getID());
+        let pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y - 5);
+        pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y - 5 );
+    };
+    
     Line.prototype.createMeshFromThis = function() {
         let lineGeometry = new THREE.Geometry(),
             lineMaterial,
@@ -395,11 +415,6 @@
         
         let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
         let p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));       
-        this.cnv2DOverlayContext.font="20px Arial";
-        let pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
-        this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y)
-        pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
-        this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y)
         
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
@@ -423,7 +438,7 @@
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
         }
         p1.position.set(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2);
-        p2.position.set(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2);
+        p2.position.set(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2);        
         sh.geometry.verticesNeedUpdate = true;
     }
     
@@ -446,6 +461,7 @@
         if (points[1]) {
             points[1].render();
         }
+        this.projectAndDrawLetters();
     };
     
     Line.prototype.pointsHave = function(transformProps, p) {
@@ -491,14 +507,6 @@
         this.transformIn_3D();
         this.updateMeasureTexts();
     };
-    
-    //Line.prototype.showDesignations = function(fontColor, font) {
-    //    let ctx = this.ctx;
-    //    ctx.fillStyle = fontColor || "#00f";
-    //    ctx.font = font || "17px Arial";    		
-    //    ctx.fillText("A", points[2].x - 20, points[2].y);
-    //    ctx.fillText("B", points[3].x + 10, points[3].y);
-    //};
     
     Line.prototype.contains = function(v) {
         let points = this.points;
@@ -587,6 +595,18 @@
         return this.lineWidth;
     };
     
+    Ray.prototype.projectAndDrawLetters = function() {
+        if (!this.container3) {
+            return;
+        }
+        var p1 = this.container3.getObjectByName(this.points[0].getID());
+        var p2 = this.container3.getObjectByName(this.points[2].getID());
+        let pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y - 5);
+        pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[2].getLetter(), pos.x, pos.y - 5);
+    };
+    
     Ray.prototype.createMeshFromThis = function() {
         let rayGeometry = new THREE.Geometry(),
             rayMaterial,
@@ -628,6 +648,7 @@
         if (points[2]) {
             points[2].render();
         }
+        this.projectAndDrawLetters();
     };
     
     Ray.prototype.pointsHave = function(transformProps, p) {
@@ -892,6 +913,18 @@
         this.translate(v);                  //  translate back to original position
     };
     
+    Segment.prototype.projectAndDrawLetters = function() {
+        if (!this.container3) {
+            return;
+        }
+        var p1 = this.container3.getObjectByName(this.points[0].getID());
+        var p2 = this.container3.getObjectByName(this.points[1].getID());
+        let pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y - 5);
+        pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
+        this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y - 5 );
+    };
+    
     Segment.prototype.createMeshFromThis = function() {
         let segmentGeometry = new THREE.Geometry(),
             segmentMaterial,
@@ -929,6 +962,7 @@
         ctx.restore();
         this.points[0].render();
         this.points[1].render();
+        this.projectAndDrawLetters();
     };
     
     Segment.prototype.boundaryContains = function(boundarySegmentIndexes, v) {
@@ -1191,6 +1225,18 @@
         return this.renderParams.lineWidth;
     };
     
+    Polygon.prototype.projectAndDrawLetters = function() {
+        if (!this.container3) {
+            return;
+        }
+        
+        for (let i = 0; i < this.points.length; i++) {
+            let p = this.container3.getObjectByName(this.points[i].getID());
+            let pos = toScreenXY(p.position, this.cnvW, this.cnvH, this.camera);
+            this.cnv2DOverlayContext.fillText(this.points[i].getLetter(), pos.x, pos.y - 5);   
+        }
+    };
+    
     Polygon.prototype.createMeshFromThis = function() {
         let polygonShape = new THREE.Shape();
         let points = this.points;
@@ -1259,6 +1305,7 @@
         this.side.points[0].set(points[i].x, points[i].y);
         this.side.points[1].set(points[0].x, points[0].y);
         this.side.render();
+        this.projectAndDrawLetters();
     };
     
     Polygon.prototype.rotate = function(v, alpha) {
@@ -1562,6 +1609,18 @@
         return this.lineWidth;
     };
     
+    Circle.prototype.projectAndDrawLetters = function() {
+        if (!this.container3) {
+            return;
+        }
+        
+        for (let i = 0; i < this.points.length; i++) {
+            let p = this.container3.getObjectByName(this.points[i].getID());
+            let pos = toScreenXY(p.position, this.cnvW, this.cnvH, this.camera);
+            this.cnv2DOverlayContext.fillText(this.points[i].getLetter(), pos.x, pos.y - 5);   
+        }
+    };
+    
     Circle.prototype.createMeshFromThis = function() {
         let circleGeometry = new THREE.Geometry(), parent = new THREE.Object3D();
         for (let alpha = 0; alpha <= 360; alpha++) {
@@ -1612,6 +1671,7 @@
             ctx.lineTo(ndpoint.x, ndpoint.y);
             ctx.stroke();
         }
+        this.projectAndDrawLetters();
     };
     
     Circle.prototype.pointsHave = function(transformProps, p) {
@@ -1818,6 +1878,13 @@
         return this.letter !== "";
     };
     
+    Point.prototype.projectAndDrawLetters = function() {
+        if (this.camera && this.letter !== "") {
+            let pos = toScreenXY(this.scene.getObjectByName(this.getID()).position, this.cnvW, this.cnvH, this.camera);
+            this.cnv2DOverlayContext.fillText(this.letter, pos.x, pos.y - 5);       
+        }
+    };
+    
     Point.prototype.createMeshFromThis = function() {
         let point3D = createPoint3D(5, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
         point3D.name = this.getID();
@@ -1827,6 +1894,7 @@
     
     Point.prototype.render = function() {
         if (!this.isVisible) {
+            log("this point is NOT visible")
             return;
         }        
         let ctx = this.ctx, center = this;
@@ -1844,6 +1912,9 @@
         if (this.letter) {
             ctx.font = "18px Arial";
             ctx.fillText(this.letter, this.x - 15, this.y + 25);
+            if (this.scene.getObjectByName(this.getID())) {
+                this.projectAndDrawLetters();   
+            }
         }
     };
     
