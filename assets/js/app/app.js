@@ -137,8 +137,7 @@
 				} else {
 					cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
 					cameraParams.distance = 1;
-				}
-				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));					
+				}				
 				
 				cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
 				cnvParams.renderer.setClearColor(0xffffff, 1);
@@ -164,8 +163,7 @@
 				scene.add(coordSystem);				
 				
 				Shape.prototype.cnvW = cnv3DWidth;
-				Shape.prototype.camera = cnvParams.camera;
-				
+				Shape.prototype.camera = cnvParams.camera;				
 				prepare3DShapes();
 				updateCamera();
 				renderer.render(scene,  cnvParams.camera);			//	initial rendering		
@@ -174,13 +172,11 @@
 				cnvParams.cnv3D.off("mouseup");
 				$("#canvas2DOverlay").off("mousedown");
 				$("#canvas2DOverlay").off("mousemove");
-				$("#canvas2DOverlay").off("mouseup");
-					
+				$("#canvas2DOverlay").off("mouseup");					
 				let onmousedown = function(e) {
 					cameraParams.mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
 					cameraParams.thetam = cameraParams.theta;
-					cameraParams.phim = cameraParams.phi;
-						
+					cameraParams.phim = cameraParams.phi;						
 					let onmmove = function(e) {
 						cameraParams.mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
 
@@ -329,7 +325,6 @@
 		shapes 		  = new Map();
 		shapes_3D	  = new Map();
 		deletedShapes = new Map();
-		initial3DShapesRotation = new THREE.Vector3(0.4, 0.5, 0.0);
 		Shape.prototype.ctx = cnvParams.ctx;
 		Shape.prototype.cnv = cnvParams.cnv;
 		Shape.prototype.cnvParams = cnvParams;
