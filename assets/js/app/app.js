@@ -117,7 +117,7 @@
 				} else {
 					cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
 				}
-				cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));					
+				//cnvParams.camera.lookAt(new THREE.Vector3(0, 0, 0));					
 				
 				cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
 				cnvParams.renderer.setClearColor(0xffffff, 1);
@@ -146,7 +146,6 @@
 				Shape.prototype.camera = cnvParams.camera;
 				
 				prepare3DShapes();
-				scene.children[3].matrixWorldNeedsUpdate = true;
 				renderer.render(scene,  cnvParams.camera);			//	initial rendering		
 				cnvParams.cnv3D.off("mousedown");
 				cnvParams.cnv3D.off("mousemove");
@@ -155,6 +154,9 @@
 				$("#canvas2DOverlay").off("mousemove");
 				$("#canvas2DOverlay").off("mouseup");
 				var _90deginRad = Math.PI * 0.5;
+				var radius = 1900;
+				log(cnvParams.camera.position)
+				
 				var onmousedown = function(e) {
 					var mouse = new Vec2(),
 						lastX, lastY;
@@ -162,15 +164,23 @@
 					var lastX = mouse.x,
 						lastY = mouse.y,
 						diffX, diffY,
-						rx, ry;
+						rx, ry, alpha = 0
+					
 					
 					var onmmove = function(e) {
 						mouse.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
-						diffX = mouse.x - lastX;
-						diffY = mouse.y - lastY;
 						
+						diffX = mouse.x - lastX;
+						diffY = mouse.y - lastY;						
 						rx = diffY / 200;
 						ry = diffX / 200;
+						
+						
+						// cnvParams.camera.position.x = radius * Math.cos(alpha);
+						// cnvParams.camera.position.z = radius * Math.sin(alpha);
+						//cnvParams.camera.updateMatrix();						
+						//log(cnvParams.camera.position)						
+						//alpha += 0.001;
 						
 						scene.rotation.x += rx;
 						if (scene.rotation.x > _90deginRad) {
@@ -180,9 +190,8 @@
 							scene.rotation.x = -_90deginRad;
 						}
 						
-						//scene.children[3].matrixWorldNeedsUpdate = true;
-						//log(scene.children[3].matrixWorld);
 						scene.rotation.y += ry;
+						
 						renderer.render(scene,  cnvParams.camera);
 						lastX = mouse.x;
 						lastY = mouse.y;
