@@ -182,8 +182,11 @@ html, body {
 }
 
 .active-subtool-help {
-	
+	display: none;
+	position: absolute;
 }
+
+.displaynone { display: none; }
 
 /*.sub-tools-help-container {
 	margin-top: 10px;
@@ -196,11 +199,16 @@ html, body {
 
 .tool-help, .active-subtool-help {
 	font-family: arial;
-	font-size: 13px;
+	font-size: 12px;
 	font-family: arial;
 	color: #fff;
 	vertical-align: top;
 	margin-left: 0px;
+	padding: 5px;
+	z-index: 999999;
+	background: #123;
+	border-radius: 5px;
+	text-align: center;
 }
 
 .selected:first-child {

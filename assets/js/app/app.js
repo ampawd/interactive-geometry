@@ -337,6 +337,30 @@
 		});
 		
 		$("#selected-shape-delete-btn").attr('disabled', 'disabled');
+		
+		
+		let leftOffset = parseFloat($("#top-tools-container").css("margin-left"));
+		let topToolWidth = parseFloat($(".top-tool").outerWidth()) + $(".top-tool").length - 1;
+		let topToolHeight = parseFloat($(".top-tool").outerHeight()) + 5;
+		$(".active-subtool-help").each(function(i, el) {
+			$(el).css({"left": leftOffset, "width": topToolWidth, "top": topToolHeight});
+			leftOffset += topToolWidth;
+			$(el).html( $(el).parent().parent().find(".tool-help").html() );
+		});
+		
+		uiParams.topTools.mouseover(function(e) {
+			$(".active-subtool-help").css({"display": "none"});
+			if ( $(e.target).find(".sub-tools").css('visibility') === "hidden" ) {
+				
+				if ($(e.target).attr("class").indexOf("top-tool") > -1) {
+					$(e.target).find(".active-subtool-help").fadeIn();
+				}
+			}
+		});
+		
+		uiParams.topTools.mouseout(function(e) {
+			$(".active-subtool-help").css({"display": "none"});
+		});
 	}
 	
 	function initShapes() {
@@ -405,11 +429,11 @@
 			uiParams.selectedToolName = e.currentTarget.className.split(" ")[1];
 			updateUI(uiParams.selectedToolName);
 			disableSelectedShapeAttribControls();
+			$(".active-subtool-help").css({"display": "none"});
 			
 			if (uiParams.selectedToolName !== "move") {				
 				uiParams.activeSubToolName = $("." + uiParams.selectedToolName).find(".active-subtool")[0].className.split(" ")[1];
 			} else {
-				//cnvParams.selectedShape = 0;
 				cnvParams.cnv.mousemove(emphasizeShapes);
 			}
 			
@@ -436,6 +460,9 @@
 				let defTool = $("." + uiParams.selectedToolName).find(".active-subtool");
 				defTool.find("img").attr("src", $(e.currentTarget).find("img").attr("src"));
 				defTool.attr("class", "active-subtool " + uiParams.activeSubToolName);
+				
+				let helpText = $("." + uiParams.activeSubToolName).find(".tool-help").html();
+				defTool.parent().parent().find(".active-subtool-help").html(helpText); 
 			});
 		});
 	}
