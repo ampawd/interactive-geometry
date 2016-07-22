@@ -44,7 +44,7 @@
         this.opacity = 1.0;
 		this.position = new Vec2(0, 0);	//	center of the mass
 
-        this.cnv2DOverlayContext.font = "20px Arial";
+        this.cnv2DOverlayContext.font = "15px Arial";
                 
         if (this.className !== "Text2d") {
             this.advancedlines = [];

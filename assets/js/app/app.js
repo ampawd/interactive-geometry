@@ -188,7 +188,11 @@
 						updateCamera();
 						
 						cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
-						shapes.forEach(function(shape) { shape.projectAndDrawLetters(); });
+						shapes.forEach(function(shape) {
+							if (shape.className != "Text2d")
+								shape.projectAndDrawLetters(); 
+						});
+						
 						renderer.render(scene,  cnvParams.camera);
 					}
 					let onmup = function(e) {
@@ -566,7 +570,8 @@
 			}
 			if (shapeConstructor.constructionStarted()) {
 				cnvParams.cnv.mousemove(function(e) {
-					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);					
+					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);		
+					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);					
 					geometryEngine.emphasizeShapesPoints(mmove);					
 					shapeParts = shapeConstructor.processConstruction(e);
 					renderShapes();
@@ -600,7 +605,7 @@
 					prepare3DShapes();
 				}
 				
-				Shape.prototype.cnv2DOverlayContext.font = "20px Arial";
+				Shape.prototype.cnv2DOverlayContext.font = "15px Arial";
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				renderShapes();
 				return;
