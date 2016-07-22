@@ -251,7 +251,8 @@
 			showButtons: false,
 			move: function (color) {
 				if (cnvParams.selectedShape) {
-					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);					
+					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);	
+					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);		
 					cnvParams.selectedShape.setRenderAttribs({
 						strokeStyle: color.toHexString(),
 						fillColor: color.toHexString(),
@@ -273,6 +274,7 @@
 			slide: function( event, ui ) {
 				if (cnvParams.selectedShape) {
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);					
+					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 					if (cnvParams.selectedShape.className !== "Text2d") {
 						$("#selected-shape-opacity-amount").val(ui.value);
 						cnvParams.selectedShape.setOpacity(parseFloat(ui.value));    
