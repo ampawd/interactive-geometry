@@ -13,19 +13,26 @@
 				<div class="top-tool move" data-tool-type="transformer">
 					<div class="active-subtool">
 						<img src="assets/images/move_button.png" class="top-tool-img" alt="move">
+						<span class="active-subtool-help"></span>
+					</div>
+					<div class="sub-tools">
+						<span class="tool-help">Select shape, then transform</span>
 					</div>
 				</div>
 				
 				<div class="top-tool measures" data-tool-type="constructor">
 					<div class="active-subtool ruler">
 						<img src="assets/images/ruler_button.png" class="top-tool-img" alt="ruler">
+						<span class="active-subtool-help"></span>
 					</div>
 					<div class="sub-tools">
 						<div class="sub-tool ruler">
-							<img src="assets/images/ruler_button.png" class="top-tool-img" alt="ruler">	
+							<img src="assets/images/ruler_button.png" class="top-tool-img" alt="ruler">
+							<span class="tool-help">Select or click on 2 arbitary points</span>
 						</div>
 						<div class="sub-tool protractor">
-							<img src="assets/images/protractor_button.png" class="top-tool-img" alt="protractor">	
+							<img src="assets/images/protractor_button.png" class="top-tool-img" alt="protractor">
+							<span class="tool-help">Select or click on 3 arbitary points</span>
 						</div>
 					</div>
 				</div>
@@ -33,13 +40,16 @@
 				<div class="top-tool point" data-tool-type="constructor">
 					<div class="active-subtool freepoint">
 						<img src="assets/images/point_button.png" class="top-tool-img" alt="point">
+						<span class="active-subtool-help"></span>
 					</div>
 					<div class="sub-tools">
 						<div class="sub-tool freepoint">
 							<img src="assets/images/point_button.png" class="top-tool-img" alt="point">
+							<span class="tool-help">Click on the graphics view</span>
 						</div>
 						<div class="sub-tool midpoint">
 							<img src="assets/images/midpoint_button.png" class="top-tool-img" alt="midpoint">
+							<span class="tool-help">Select or click on 2 arbitary points</span>
 						</div>
 					</div>
 				</div>
@@ -47,31 +57,39 @@
 				<div class="top-tool line" data-tool-type="constructor">
 					<div class="active-subtool linethrpoints">
 						<img src="assets/images/line_button.png" class="top-tool-img" alt="line">
+						<span class="active-subtool-help"></span>
 					</div>
 					<div class="sub-tools">
 						<div class="sub-tool linethrpoints">
 							<img src="assets/images/line_button.png" class="top-tool-img" alt="line">
+							<span class="tool-help">Select or click on 2 points</span>
 						</div>
 						<div class="sub-tool ray">
 							<img src="assets/images/ray_button.png" class="top-tool-img" alt="ray">
+							<span class="tool-help">Select or click on existing ray starting point then second point</span>
 						</div>
 						<div class="sub-tool segment">
 							<img src="assets/images/segment_button.png" class="top-tool-img" alt="segment">
+							<span class="tool-help">Select or click on 2 points</span>
 						</div>
 					<!--<div class="sub-tool fixedsegment">
 							<img src="assets/images/fixedsegment_button.png" class="top-tool-img" alt="fixedsegment" />
 						</div>-->
 						<div class="sub-tool vector">
 							<img src="assets/images/vector_button.png" class="top-tool-img" alt="vector">
+							<span class="tool-help">Select or click on 2 points</span>
 						</div>
 						<div class="sub-tool parallelline">
 							<img src="assets/images/parallelline_button.png" class="top-tool-img" alt="parallelline">
+							<span class="tool-help">Select point and his parallel line or any side of the polygon</span>
 						</div>
 						<div class="sub-tool perpendicularline">
 							<img src="assets/images/perpendicularline_button.png" class="top-tool-img" alt="perpendicularline">
+							<span class="tool-help">Select point and his perpendicular line or any side of the polygon</span>
 						</div>
 						<div class="sub-tool angle_bisector">
 							<img src="assets/images/angle_bisectorline_button.png" class="top-tool-img" alt="angle_bisectorline">
+							<span class="tool-help">Select or click on 3 points</span>
 						</div>
 					</div>
 				</div>
@@ -79,13 +97,16 @@
 				<div class="top-tool polygon" data-tool-type="constructor">
 					<div class="active-subtool freepolygon">
 						<img src="assets/images/triangle_button.png" class="top-tool-img" alt="polygon">
+						<span class="active-subtool-help"></span>
 					</div>
 					<div class="sub-tools">
 						<div class="sub-tool freepolygon">
 							<img src="assets/images/triangle_button.png" class="top-tool-img" alt="polygon">
+							<span class="tool-help">Select or click on points then click on first point again</span>
 						</div>
 						<div class="sub-tool regpolygon">
 							<img src="assets/images/regpolygon_button.png" class="top-tool-img" alt="regpolygon">
+							<span class="tool-help">Enter number of vertices then select or click for center and drag to choose the side</span>
 						</div>
 					</div>
 				</div>
@@ -93,13 +114,16 @@
 				<div class="top-tool circle" data-tool-type="constructor">
 					<div class="active-subtool circlethrpoint">
 						<img src="assets/images/circle_button.png" class="top-tool-img" alt="circle">
+						<span class="active-subtool-help"></span>
 					</div>
 					<div class="sub-tools">
 						<div class="sub-tool circlethrpoint">
 							<img src="assets/images/circle_button.png" class="top-tool-img" alt="circle">
+							<span class="tool-help">Select or click the circle center then drag for radius</span>
 						</div>
 						<div class="sub-tool circleradcenter">
 							<img src="assets/images/circleradcenter_button.png" class="top-tool-img" alt="circleradcenter">
+							<span class="tool-help">Enter radius then choose the circle center</span>
 						</div>
 					</div>
 				</div>			
@@ -128,7 +152,7 @@
 					<div id="projection_change" title="change 3D projection">
 						<select id="projection_select" disabled="true">
 							<option value="ortho">Orthographic</option>
-							<option value="persp">Perspective</option>
+							<option selected=selected value="persp">Perspective</option>
 						</select>
 					</div>
 					<div id="view-change" title="change view">
@@ -143,6 +167,7 @@
 		
 		<div id="render-canvases">
 			<canvas id='canvas2d'></canvas>
+			<canvas id='canvas2DOverlay' width="1" height="1"></canvas>
 		</div>		
 		
 		<script type='text/javascript' src='assets/js/lib/jquery.js'></script>
