@@ -257,7 +257,8 @@
 						strokeStyle: color.toHexString(),
 						fillColor: color.toHexString(),
 						lineWidth: cnvParams.selectedShape.getBoundaryWidth()
-					});					
+					});
+					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
 				}
 			},
@@ -281,7 +282,7 @@
 					} else {
 						//	...
 					}
-					
+					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
 				}			
 			}

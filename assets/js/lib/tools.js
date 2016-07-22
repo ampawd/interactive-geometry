@@ -505,7 +505,7 @@
     function getPolygonConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let renderParams = {
             strokeStyle: "#000",
-            fillColor: "#00f",
+            fillColor: "#cf3939",
             lineWidth: 1
         },
         points = [], currentPoint = 0,
@@ -618,6 +618,7 @@
     function getCircleConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let renderParams = {
             strokeStyle: "#000",
+            fillColor: "#569",
             lineWidth: 1
         },
         geometryEngine = new GeometryEngine(),
