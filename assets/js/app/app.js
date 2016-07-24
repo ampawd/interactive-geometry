@@ -350,12 +350,12 @@
 		
 		uiParams.topTools.mouseover(function(e) {
 			$(".active-subtool-help").css({"display": "none"});
-			if ( $(e.target).find(".sub-tools").css('visibility') === "hidden" ) {
+			//if ( $(e.target).find(".sub-tools").css('visibility') === "hidden" ) {
 				
 				if ($(e.target).attr("class").indexOf("top-tool") > -1) {
 					$(e.target).find(".active-subtool-help").fadeIn();
 				}
-			}
+			//}
 		});
 		
 		uiParams.topTools.mouseout(function(e) {
