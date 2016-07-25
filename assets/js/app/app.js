@@ -87,7 +87,8 @@
 			phi:   	   25,
 			theta:	  -15,
 			phim:	   0,
-			thetam:	   0
+			thetam:	   0,
+			fov:	   55
 		};
 		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
 	}
@@ -132,7 +133,7 @@
 				cnv3DWidth = bothCanvasesWidth - cnvParams.w - 5;
 				
 				if (uiParams.projectionSelect.val() === "persp") {
-					cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
+					cnvParams.camera = new THREE.PerspectiveCamera(cameraParams.fov, cnv3DWidth/cnvParams.h, 1, 3000);
 					cnvParams.camera.position.z = 1900;
 					cameraParams.distance = cnvParams.camera.position.length();
 				} else {
@@ -236,7 +237,7 @@
 				cameraParams.distance = 1;
 			
 			} else if ($(this).val() === "persp") {
-				cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
+				cnvParams.camera = new THREE.PerspectiveCamera(cameraParams.fov, cnv3DWidth/cnvParams.h, 1, 3000);
 				cnvParams.camera.position.z = 1900;
 				cameraParams.distance = cnvParams.camera.position.length();
 			}
