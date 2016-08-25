@@ -131,6 +131,10 @@ html, body {
 	background: #ccc !important;
 }
 
+._3DShape {
+	display: none !important;
+}
+
 .top-tool {
 	padding: 10px 25px;
 	display: inline-block;

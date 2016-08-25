@@ -709,9 +709,55 @@
         };
     }
     
-    function shapeConstructorFactory(cnvParams, shapes) {
+    function get3DShapesConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
+       let renderParams = {
+            strokeStyle: "#000",
+            fillColor: "#569",
+            lineWidth: 1
+        },
+        geometryEngine = new GeometryEngine(),
+        shape = 0,
+        shapeParts = [],
+        sphereCenter = 0,
+        radius = 0,
+        clicks = 0,
+        cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
+        cnvOffsetY = cnvParams.cnvOffsetY;
+        return {
+            constructionStarted: function() {
+                return clicks == 0;
+            },				
+            initConstruction: function() {
+                
+            },
+            constructionReady: function() {
+                return true;
+            },
+            processConstruction: function(e) {
+                mmove.set(e.clientX - cnvOffsetX, e.clientY - cnvOffsetY);
+                //log(mmove.x, mmove.y)
+                return shapeParts;
+            },
+            constructionEnding: function() {
+                
+                return false;
+            },				
+            endConstruction: function() {
+                
+                return shape;
+            },
+            constructionNextStep: function() {
+                clicks++;
+            }
+        };
+    }
+    
+    function shapeConstructorFactory(cnvParams, shapes, shapes3D, cameraParams, updateCamera) {
         this.cnvParams = cnvParams;
         this.shapes = shapes;
+        this.shapes_3D = shapes3D;
+        this.cameraParams = cameraParams;
+        this.updateCamera = updateCamera;
         
         this.getConstructor = function(toolName, subtoolName, mdown, mmove) {
             switch (toolName) {
@@ -725,6 +771,8 @@
                     return getPolygonConstructor(subtoolName,   this.cnvParams, mdown, mmove, this.shapes);
                 case "circle":
                     return getCircleConstructor(subtoolName,    this.cnvParams, mdown, mmove, this.shapes);
+                case "_3DShape":
+                    return get3DShapesConstructor(subtoolName,  this.cnvParams, mdown, mmove, this.shapes);
                 default:
                     return false;
             }
