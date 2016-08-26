@@ -716,35 +716,64 @@
             lineWidth: 1
         },
         geometryEngine = new GeometryEngine(),
-        shape = 0,
+        mesh = 0,
         shapeParts = [],
         sphereCenter = 0,
         radius = 0,
         clicks = 0,
         cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
         cnvOffsetY = cnvParams.cnvOffsetY;
+        let sphereGeom = new THREE.SphereGeometry(15, 32, 32);
+        let shpereMat = new THREE.MeshPhongMaterial({color: 0x000000});
+        let helpCenterMesh = new THREE.Mesh(sphereGeom, shpereMat);
+        cnvParams.scene.add(helpCenterMesh);
         return {
             constructionStarted: function() {
                 return clicks == 0;
             },				
             initConstruction: function() {
-                
+                if (clicks == 0) {
+                    sphereCenter = mdown.copy();    
+                }
             },
             constructionReady: function() {
                 return true;
             },
             processConstruction: function(e) {
-                mmove.set(e.clientX - cnvOffsetX, e.clientY - cnvOffsetY);
-                //log(mmove.x, mmove.y)
+                radius = mmove.sub(mdown).length();
+                helpCenterMesh.position.set(mmove.x, 0, mmove.y)
                 return shapeParts;
             },
             constructionEnding: function() {
-                
-                return false;
+                return clicks == 1;
             },				
             endConstruction: function() {
+                //log(radius)
+                switch (subtoolName) {
+                    case "sphererad":
+                        let sphereGeom = new THREE.SphereGeometry(200, 32, 32);
+                        let shpereMat = new THREE.MeshPhongMaterial({color: 0xff0000, transparent: true, opacity: 0.8});
+                        mesh = new THREE.Mesh(sphereGeom, shpereMat);        
+                    break;
+                    case "box":
+                        let boxGeom = new THREE.BoxGeometry(300, 300, 300);
+                        let boxMat = new THREE.MeshPhongMaterial({color: 0x112233, transparent: true, opacity: 0.8});
+                        mesh = new THREE.Mesh(boxGeom, boxMat);        
+                    break;
+                    case "cylinder":
+                        let cylGeom = new THREE.CylinderGeometry( 200, 200, 500, 32, 32 );
+                        let cylMat = new THREE.MeshPhongMaterial({color: 0x554433, transparent: true, opacity: 0.8});
+                        mesh = new THREE.Mesh(cylGeom, cylMat);        
+                    break;
+                }
+                //log(sphereCenter)
+                //cnvParams.scene.add(mesh);
+                cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
                 
-                return shape;
+                shapeParts = [];
+                clicks = 0;
+                radius = 0;
+                return mesh;
             },
             constructionNextStep: function() {
                 clicks++;
