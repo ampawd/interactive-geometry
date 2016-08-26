@@ -1073,7 +1073,7 @@
         let points = this.points, diff = new Vec2();
         if (!this.container3) {
             log("can't transform 3D version of this shape ...");
-            //return;
+            return;
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
         
