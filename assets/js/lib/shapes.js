@@ -1070,12 +1070,10 @@
     };
     
     Vector.prototype.transform = function(transformProps, mdown, mmove) {
-        let points = this.points, diff = new Vec2();
-        if (!this.container3) {
-            log("can't transform 3D version of this shape ...");
-            return;
+        let points = this.points, diff = new Vec2(), sh;
+        if (this.container3) {
+            sh = this.container3.getObjectByName("child" + this.getID());
         }
-        let sh = this.container3.getObjectByName("child" + this.getID());
         
         if (!this.transformable) {
             return;
@@ -1091,11 +1089,11 @@
         if (this.translatable && transformProps.translating) {
             diff = mmove.sub(mdown);
             this.translate(diff);
-            sh.translateX(diff.x);
-            sh.translateZ(diff.y);
+            sh && sh.translateX(diff.x);
+            sh && sh.translateZ(diff.y);
             mdown.set(mmove.x, mmove.y);
         }
-        this.transformIn_3D();
+        sh && this.transformIn_3D();
         this.updateMeasureTexts();
     };
     
