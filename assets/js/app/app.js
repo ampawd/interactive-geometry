@@ -105,6 +105,7 @@
 			cnvParams.camera.position.z = cameraParams.distance * Math.cos(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);						
 			cameraParams.newTarget.set(-cnvParams.camera.position.x, -cnvParams.camera.position.y, -cnvParams.camera.position.z);
 			cnvParams.camera.lookAt(cameraParams.newTarget);
+			cnvParams.camera.updateProjectionMatrix();
 			Shape.prototype.camera = cnvParams.camera;
 		};
 	}
@@ -136,11 +137,11 @@
 		cnvParams.cnv2DOverlay.attr("width", cnv3DWidth);
 		cnvParams.cnv2DOverlay.attr("height", cnvParams.h);
 		cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});
+		let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
+		coordSystem.name = "coordSystem";
 		let light1 = new THREE.PointLight(0xffffff, 1, 5000);
 		let light2 = new THREE.PointLight(0xffffff, 1, 5000);
-		let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
 		light1.name = "light1"; light2.name = "light2";
-		coordSystem.name = "coordSystem";
 		light1.position.set(500, 500, 700);
 		light1.intensity = 1;
 		light2.position.set(-500, -500, 700);
@@ -577,7 +578,7 @@
 				return;
 			}
 			shapeConstructor.constructionNextStep();
-		});	
+		});
 		
 		//	3d shapes constructing
 		if (cnvParams._3DviewEnabled) {
@@ -592,8 +593,15 @@
 			$(".active-subtool-help").css({"display": "none"});
 			uiParams.subTools.css({"visibility" : "hidden"});
 			e.stopPropagation();
-			mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,
-					-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));
+
+			//	assuming that origin located at the screen center
+				//mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,	
+				//	-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));					
+			
+			mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5,
+					 (e.clientY - cnvParams.cnvOffsetY));
+			
+			//log(mdown)
 			
 			shapeConstructor.initConstruction();			
 			
@@ -626,8 +634,11 @@
         }
 		
 		function onCnv3DMmove(e) {
-			mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,
-					-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));			
+			//mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,	
+			//	-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));		
+			
+			mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5,
+					 (e.clientY - cnvParams.cnvOffsetY));			
 			
 			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);					
 			shapeParts = shapeConstructor.processConstruction(e);

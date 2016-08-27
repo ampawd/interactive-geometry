@@ -11,6 +11,7 @@
         Vec3 = Global.math.Vec3,
         Mat2 = Global.math.Mat2,
         Mat3 = Global.math.Mat3,
+        toWorldSpace = Global.math.toWorldSpace,
         radToDeg = Global.math.radToDeg,
         degToRad = Global.math.degToRad,
         getAngle = Global.math.getAngle,

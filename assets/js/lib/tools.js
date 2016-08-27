@@ -24,6 +24,7 @@
         getAngle = Global.math.getAngle,
         radToDeg = Global.math.radToDeg,
         degToRad = Global.math.degToRad,
+        toWorldSpace = Global.math.toWorldSpace,
         GeometryEngine = Global.engine.GeometryEngine;
     
     
@@ -710,7 +711,7 @@
     }
     
     function get3DShapesConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
-       let renderParams = {
+        let renderParams = {
             strokeStyle: "#000",
             fillColor: "#569",
             lineWidth: 1
@@ -723,10 +724,14 @@
         clicks = 0,
         cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
         cnvOffsetY = cnvParams.cnvOffsetY;
-        let sphereGeom = new THREE.SphereGeometry(15, 32, 32);
+        let sphereGeom = new THREE.SphereGeometry(11, 32, 32);
         let shpereMat = new THREE.MeshPhongMaterial({color: 0x000000});
         let helpCenterMesh = new THREE.Mesh(sphereGeom, shpereMat);
+        let mouse3D, mat4 = new THREE.Matrix4(), mat41 = new THREE.Matrix4();
+        let mdown3D = new THREE.Vector3();
+        
         cnvParams.scene.add(helpCenterMesh);
+        
         return {
             constructionStarted: function() {
                 return clicks == 0;
@@ -735,24 +740,30 @@
                 if (clicks == 0) {
                     sphereCenter = mdown.copy();    
                 }
+                mdown3D = toWorldSpace(mdown, cnvParams.w, cnvParams.h, cnvParams.camera, mat41);
+                mdown3D.set(mdown3D.x, 0, mdown3D.z);
             },
             constructionReady: function() {
                 return true;
             },
             processConstruction: function(e) {
-                radius = mmove.sub(mdown).length();
-                helpCenterMesh.position.set(mmove.x, 0, mmove.y)
+                
+                mouse3D = toWorldSpace(mmove, cnvParams.w, cnvParams.h, cnvParams.camera, mat4);    //  wroung way
+                
+                helpCenterMesh.position.set(mouse3D.x, 0, mouse3D.z);
+                
+                radius = helpCenterMesh.position.clone().sub(mdown3D).length();
+                
                 return shapeParts;
             },
             constructionEnding: function() {
                 return clicks == 1;
             },				
             endConstruction: function() {
-                //log(radius)
                 switch (subtoolName) {
                     case "sphererad":
-                        let sphereGeom = new THREE.SphereGeometry(200, 32, 32);
-                        let shpereMat = new THREE.MeshPhongMaterial({color: 0xff0000, transparent: true, opacity: 0.8});
+                        let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
+                        let shpereMat = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 0.8});
                         mesh = new THREE.Mesh(sphereGeom, shpereMat);        
                     break;
                     case "box":
@@ -761,13 +772,13 @@
                         mesh = new THREE.Mesh(boxGeom, boxMat);        
                     break;
                     case "cylinder":
-                        let cylGeom = new THREE.CylinderGeometry( 200, 200, 500, 32, 32 );
+                        let cylGeom = new THREE.CylinderGeometry(200, 200, 500, 32, 32);
                         let cylMat = new THREE.MeshPhongMaterial({color: 0x554433, transparent: true, opacity: 0.8});
-                        mesh = new THREE.Mesh(cylGeom, cylMat);        
+                        mesh = new THREE.Mesh(cylGeom, cylMat);
                     break;
                 }
-                //log(sphereCenter)
-                //cnvParams.scene.add(mesh);
+                mesh.position.set(helpCenterMesh.position.x, 0, helpCenterMesh.position.z)
+                cnvParams.scene.add(mesh);
                 cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
                 
                 shapeParts = [];
