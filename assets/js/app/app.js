@@ -100,6 +100,10 @@
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
 		updateCamera = function() {
+			if (!cnvParams.camera) {
+                log("cnvParams.camera is falsy")
+				return;
+            }
 			cnvParams.camera.position.x = cameraParams.distance * Math.sin(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);
 			cnvParams.camera.position.y = cameraParams.distance * Math.sin(cameraParams.phi * degToRad);
 			cnvParams.camera.position.z = cameraParams.distance * Math.cos(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);						
@@ -600,8 +604,6 @@
 			
 			mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5,
 					 (e.clientY - cnvParams.cnvOffsetY));
-			
-			//log(mdown)
 			
 			shapeConstructor.initConstruction();			
 			

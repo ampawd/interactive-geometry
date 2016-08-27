@@ -1936,7 +1936,7 @@
     
     Point.prototype.render = function() {
         if (!this.isVisible) {
-            log("this point is NOT visible")
+            //log("this point is NOT visible")
             return;
         }        
         let ctx = this.ctx, center = this;

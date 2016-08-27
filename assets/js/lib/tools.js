@@ -440,7 +440,8 @@
                             shape = 0;
                             return shape;
                         } else {
-                            geometryEngine.stickPointToFounded(v1).translatable = false;
+                            let foundedPoint = geometryEngine.stickPointToFounded(v1);
+                            foundedPoint && (foundedPoint.translatable = false);
                             lambda = cnvW + cnvH;
                             let p1 = toShape.points[_2PointsIndexes[0]],
                                 p2 = toShape.points[_2PointsIndexes[1]],
@@ -747,7 +748,6 @@
                 return true;
             },
             processConstruction: function(e) {
-                
                 mouse3D = toWorldSpace(mmove, cnvParams.w, cnvParams.h, cnvParams.camera, mat4);    //  wroung way
                 
                 helpCenterMesh.position.set(mouse3D.x, 0, mouse3D.z);
