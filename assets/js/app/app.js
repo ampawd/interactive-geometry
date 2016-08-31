@@ -66,8 +66,8 @@
 			  + parseInt(uiParams.topToolsContainer.css("padding-top")) + parseInt(uiParams.topToolsContainer.css("padding-bottom"));
 			  
 		uiParams.reloadBtn = $(".reloadBtn");
-		uiParams.undoBtn = $(".undoBtn");
-		uiParams.redoBtn = $(".redoBtn");
+		//uiParams.undoBtn = $(".undoBtn");
+		//uiParams.redoBtn = $(".redoBtn");
 		uiParams._3dviewCheckBox = $('#3dview-checkbox');
 		uiParams.projectionSelect = $('#projection_select');
 		uiParams._3DShapesTools = $("._3DShape");
@@ -128,7 +128,7 @@
 	function setUP3DView(cnv3DWidth) {
         if (uiParams.projectionSelect.val() === "persp") {
 			cnvParams.camera = new THREE.PerspectiveCamera(cameraParams.fov, cnv3DWidth/cnvParams.h, 1, 3000);
-			cnvParams.camera.position.z = 1900;
+			cnvParams.camera.position.z = 1880;
 			cameraParams.distance = cnvParams.camera.position.length();
 		} else {
 			cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
@@ -143,10 +143,11 @@
 		cnvParams.cnv2DOverlay.attr("width", cnv3DWidth);
 		cnvParams.cnv2DOverlay.attr("height", cnvParams.h);
 		cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});
+		
 		let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
 		coordSystem.name = "coordSystem";
 		
-		cameraParams.light1 = new THREE.DirectionalLight(0xffffff, 0.8);
+		cameraParams.light1 = new THREE.DirectionalLight(0xffffff, 0.3);
 		cameraParams.light1.name = "light1";
 		cameraParams.light1.position.set(500, 500, 100);
 		cnvParams.scene.add(cameraParams.light1);
@@ -155,7 +156,7 @@
 		//cameraParams.light2.name = "light2";
 		//cameraParams.light2.position.set(-500, 500, -700);			
 		//cnvParams.scene.add(cameraParams.light2);
-		//
+
 		cnvParams.scene.add(coordSystem);	
 		Shape.prototype.cnvW = cnv3DWidth;
 		Shape.prototype.camera = cnvParams.camera;
@@ -292,7 +293,7 @@
 			
 			} else if ($(this).val() === "persp") {
 				cnvParams.camera = new THREE.PerspectiveCamera(cameraParams.fov, cnv3DWidth/cnvParams.h, 1, 3000);
-				cnvParams.camera.position.z = 1900;
+				cnvParams.camera.position.z = 1880;
 				cameraParams.distance = cnvParams.camera.position.length();
 			}
 			
@@ -590,7 +591,7 @@
 				}
 				
 				Shape.prototype.cnv2DOverlayContext.font = "15px Arial";
-				//cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				renderShapes();
 				return;
 			}

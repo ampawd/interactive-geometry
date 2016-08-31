@@ -721,7 +721,7 @@
         mesh = 0,
         shapeParts = [],
         meshPosition = new THREE.Vector3(),
-        radius = 0,
+        radius = 0, numVertices = 3,
         clicks = 0,
         cylHeight = 0,
         boxSizes,
@@ -746,41 +746,41 @@
             constructionReady: function() {
                 switch (subtoolName) {
                     case "sphererad":
-                            let coordArray = prompt("Specify the center coordinates separated with semicolon");
-                            if (coordArray === null) {
-                                return false;
-                            }
-                            coordArray = coordArray.split(",");
-                            meshPosition.set(+coordArray[0], +coordArray[1], +coordArray[2]);
-                            if (!meshPosition) {
-                                alert("Enter valid center coordinates");
-                                return false;
-                            }
-                            radius = parseFloat( prompt("Enter sphere radius:") );
-                            if (!radius) {
-                                alert("Enter valid radius");
-                                return false;
-                            }
-                        break;
+                        let coordArray = prompt("Specify center coordinates separated with semicolon");
+                        if (coordArray === null) {
+                            return false;
+                        }
+                        coordArray = coordArray.split(",");
+                        meshPosition.set(+coordArray[0], +coordArray[1], +coordArray[2]);
+                        if (!meshPosition) {
+                            alert("Enter valid center coordinates");
+                            return false;
+                        }
+                        radius = parseFloat( prompt("Enter sphere radius:") );
+                        if (!radius) {
+                            alert("Enter valid radius");
+                            return false;
+                        }
+                    break;
                     case "box":
+                        let pos = prompt("Enter position coordinates separated with semicolon:");
+                            if (pos === null) {
+                                return false;
+                            }
                             boxSizes = prompt("Specify the sizes separated with semicolon");
                             if (boxSizes === null) {
                                 return false;
                             }
                             boxSizes = boxSizes.split(",");
-                            let pos = prompt("Enter position coordinates separated with semicolon:");
-                            if (pos === null) {
-                                return false;
-                            }
                             pos = pos.split(",");
                             meshPosition.set(+pos[0], +pos[1], +pos[2]);
                             if (!meshPosition) {
                                 alert("Enter valid box center coordinates");
                                 return false;
                             }
-                        break;
+                    break;
                     case "cylinder":
-                        let coordArrayCyl = prompt("Specify the position of cylinder separated with semicolon");
+                        let coordArrayCyl = prompt("Specify position coordinates separated with semicolon");
                         if (coordArrayCyl === null) {
                             return false;
                         }
@@ -800,29 +800,53 @@
                             alert("Enter valid height for cylinder");
                             return false;
                         }
-                        break;
+                    break;
                     case "cone":
-                        let coordArrayCone = prompt("Specify the position of cone separated with semicolon");
-                        if (coordArrayCone === null) {
-                            return false;
-                        }
-                        coordArrayCone = coordArrayCone.split(",");
-                        meshPosition.set(+coordArrayCone[0], +coordArrayCone[1], +coordArrayCone[2]);
-                        radius = parseFloat( prompt("Enter radius for base:") );
-                        if (!meshPosition) {
-                            alert("Enter valid center coordinates");
-                            return false;
-                        }
-                        if (!radius) {
-                            alert("Enter valid radius");
-                            return false;
-                        }
-                        cylHeight = parseFloat( prompt("Enter cone height:") );
-                        if (!cylHeight) {
-                            alert("Enter valid height for cylinder");
-                            return false;
-                        }
-                        break;
+                        let coordArrayCone = prompt("Specify position coordinates separated with semicolon");
+                            if (coordArrayCone === null) {
+                                return false;
+                            }
+                            coordArrayCone = coordArrayCone.split(",");
+                            meshPosition.set(+coordArrayCone[0], +coordArrayCone[1], +coordArrayCone[2]);
+                            radius = parseFloat( prompt("Enter radius for base:") );
+                            if (!meshPosition) {
+                                alert("Enter valid center coordinates");
+                                return false;
+                            }
+                            if (!radius) {
+                                alert("Enter valid radius");
+                                return false;
+                            }
+                            cylHeight = parseFloat( prompt("Enter cone height:") );
+                            if (!cylHeight) {
+                                alert("Enter valid height for cone");
+                                return false;
+                            }
+                    break;
+                    case "prism":
+                        let coordArrayPrism = prompt("Specify position coordinates separated with semicolon");
+                            if (coordArrayPrism === null) {
+                                return false;
+                            }
+                            coordArrayPrism = coordArrayPrism.split(",");
+                            meshPosition.set(+coordArrayPrism[0], +coordArrayPrism[1], +coordArrayPrism[2]);
+                            let sideAndVerts = prompt("Enter polygon side and number of vertices:");
+                            if (!meshPosition) {
+                                alert("Enter valid center coordinates");
+                                return false;
+                            }
+                            if (!sideAndVerts) {
+                                alert("Enter valid polygon side");
+                                return false;
+                            }
+                            radius = parseFloat(sideAndVerts.split(",")[0]);
+                            numVertices = parseFloat(sideAndVerts.split(",")[1]);
+                            cylHeight = parseFloat( prompt("Enter prism height:") );
+                            if (!cylHeight) {
+                                alert("Enter valid height for prism");
+                                return false;
+                            }
+                    break;
                 }
                 
                 return true;
@@ -849,17 +873,17 @@
                 switch (subtoolName) {
                     case "sphererad":
                         let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
-                        let shpereMat = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 0.85});
+                        let shpereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(sphereGeom, shpereMat);        
                     break;
                     case "box":
                         let boxGeom = new THREE.BoxGeometry(+boxSizes[0], +boxSizes[1], +boxSizes[2]);
-                        let boxMat = new THREE.MeshLambertMaterial({color: 0x112233, transparent: true, opacity: 0.85});
+                        let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(boxGeom, boxMat);        
                     break;
-                    case "cylinder": case "cone":
-                        let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, 32, 32);
-                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : 0x554433, transparent: true, opacity: 0.85});
+                    case "cylinder": case "cone": case "prism":
+                        let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, subtoolName == "prism" ? numVertices : 32, subtoolName == "prism" ? numVertices : 32);
+                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : subtoolName == "prism" ? 0x123456 : 0x554433, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(cylGeom, cylMat);
                     break;
                 }

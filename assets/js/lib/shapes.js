@@ -1460,8 +1460,7 @@
             this.outCircle = new Circle(new Vec2(x0, y0), r, renderParams || {});
             this.outCircle.circleCenter = new Circle(new Vec2(x0, y0), 1, {});
         return this.outCircle;
-    };
-    
+    };    
     
     /**
      *  class RegularPolygon  
