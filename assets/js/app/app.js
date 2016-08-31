@@ -1,7 +1,7 @@
 "use strict";
 
 // TODO:
-// 1. Fix bug with rotating camera after constructing  3d shape (it does not rotate)
+// 1. 
 
 ;(function($, THREE, Global) {
 	
