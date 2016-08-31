@@ -1,8 +1,7 @@
 "use strict";
 
 // TODO:
-// 1. Show shape designations
-// 2. Fix bug with Segment.prototype.contains method (sometimes returns false for fixed length segments because of the condition Math.floor(a1 + a2) == Math.floor(this.length))
+// 1. Fix bug with Segment.prototype.contains method (sometimes returns false for fixed length segments because of the condition Math.floor(a1 + a2) == Math.floor(this.length))
 
 ;(function($, THREE, Global) {
     
@@ -1284,7 +1283,7 @@
             parent.add(p);
         }
         let polygonGeom = new THREE.ShapeGeometry(polygonShape);
-        for (let i = 0; i < polygonGeom.vertices.length; i++) {	//	maping to xz plane
+        for (let i = 0; i < polygonGeom.vertices.length; i++) {         //	maping to xz plane
             temp = polygonGeom.vertices[i].y;
             polygonGeom.vertices[i].y = 0;
             polygonGeom.vertices[i].z = temp;

@@ -101,15 +101,17 @@
 		cnvParams.renderer.setSize(0, 0);
 		updateCamera = function() {
 			if (!cnvParams.camera) {
-                log("cnvParams.camera is falsy")
+                log("cnvParams.camera is falsy");
 				return;
             }
 			cnvParams.camera.position.x = cameraParams.distance * Math.sin(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);
 			cnvParams.camera.position.y = cameraParams.distance * Math.sin(cameraParams.phi * degToRad);
 			cnvParams.camera.position.z = cameraParams.distance * Math.cos(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);						
+
 			cameraParams.newTarget.set(-cnvParams.camera.position.x, -cnvParams.camera.position.y, -cnvParams.camera.position.z);
 			cnvParams.camera.lookAt(cameraParams.newTarget);
 			cnvParams.camera.updateProjectionMatrix();
+			
 			Shape.prototype.camera = cnvParams.camera;
 		};
 	}
@@ -143,15 +145,17 @@
 		cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});
 		let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
 		coordSystem.name = "coordSystem";
-		let light1 = new THREE.PointLight(0xffffff, 1, 5000);
-		let light2 = new THREE.PointLight(0xffffff, 1, 5000);
-		light1.name = "light1"; light2.name = "light2";
-		light1.position.set(500, 500, 700);
-		light1.intensity = 1;
-		light2.position.set(-500, -500, 700);
-		light2.intensity = 1;
-		cnvParams.scene.add(light1);	
-		//cnvParams.scene.add(light2);
+		
+		cameraParams.light1 = new THREE.DirectionalLight(0xffffff, 0.8);
+		cameraParams.light1.name = "light1";
+		cameraParams.light1.position.set(500, 500, 100);
+		cnvParams.scene.add(cameraParams.light1);
+		
+		//cameraParams.light2 = new THREE.DirectionalLight(0xffffff, 0.8);
+		//cameraParams.light2.name = "light2";
+		//cameraParams.light2.position.set(-500, 500, -700);			
+		//cnvParams.scene.add(cameraParams.light2);
+		//
 		cnvParams.scene.add(coordSystem);	
 		Shape.prototype.cnvW = cnv3DWidth;
 		Shape.prototype.camera = cnvParams.camera;
@@ -190,8 +194,9 @@
 				
 				cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 				shapes.forEach(function(shape) {
-					if (shape.className != "Text2d")
+					if (shape.className != "Text2d") {
 						shape.projectAndDrawLetters(); 
+					}
 				});
 				
 				cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);
@@ -263,7 +268,7 @@
 				uiParams.projectionSelect.attr("disabled", true);
 				uiParams._3DShapesTools.attr("style", "display: none !important");
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
-				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
+				//cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
 				cnvParams._3DviewEnabled = false;
 				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent) / 100 );
@@ -481,7 +486,7 @@
 				defTool.parent().find(".active-subtool-help").html(helpText); 
 			});
 		});
-	}	
+	}
 
 	function setupHistory() {
 		uiParams.reloadBtn.click(function() {
@@ -493,6 +498,14 @@
 			shapes.forEach(function(sh, id) {
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName(id));	
 			});
+			
+			for (let i = cnvParams.scene.children.length - 1; i >= 0; i--){
+				let obj = cnvParams.scene.children[i];
+				if (obj.name !== "coordSystem") {
+					cnvParams.scene.remove(obj);    
+                }
+			}
+			
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 			shapes.clear();
 			shapes_3D.clear();
@@ -501,7 +514,7 @@
 			Triangle.count = RegularPolygon.count = Circle.count = Point.count = Text2d.count = 0;
 			Shape.nextLetterIndex = 0;
 			Shape.letterIndexMark = 0;
-			$(".active-subtool-help").css({"display": "none"});
+			$(".active-subtool-help").css({"display": "none"});			
 		});
 	}
 	
@@ -577,7 +590,7 @@
 				}
 				
 				Shape.prototype.cnv2DOverlayContext.font = "15px Arial";
-				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+				//cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 				renderShapes();
 				return;
 			}

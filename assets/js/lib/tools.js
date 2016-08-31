@@ -711,7 +711,7 @@
         };
     }
     
-    function get3DShapesConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
+    function get3DShapesConstructor(subtoolName, cnvParams, mdown, mmove, shapes, shapes_3D) {
         let renderParams = {
             strokeStyle: "#000",
             fillColor: "#569",
@@ -720,9 +720,11 @@
         geometryEngine = new GeometryEngine(),
         mesh = 0,
         shapeParts = [],
-        sphereCenter = 0,
+        meshPosition = new THREE.Vector3(),
         radius = 0,
         clicks = 0,
+        cylHeight = 0,
+        boxSizes,
         cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
         cnvOffsetY = cnvParams.cnvOffsetY;
         let sphereGeom = new THREE.SphereGeometry(11, 32, 32);
@@ -731,54 +733,142 @@
         let mouse3D, mat4 = new THREE.Matrix4(), mat41 = new THREE.Matrix4();
         let mdown3D = new THREE.Vector3();
         
-        cnvParams.scene.add(helpCenterMesh);
+        //cnvParams.scene.add(helpCenterMesh);
         
         return {
             constructionStarted: function() {
                 return clicks == 0;
             },				
             initConstruction: function() {
-                if (clicks == 0) {
-                    sphereCenter = mdown.copy();    
-                }
                 mdown3D = toWorldSpace(mdown, cnvParams.w, cnvParams.h, cnvParams.camera, mat41);
                 mdown3D.set(mdown3D.x, 0, mdown3D.z);
             },
             constructionReady: function() {
+                switch (subtoolName) {
+                    case "sphererad":
+                            let coordArray = prompt("Specify the center coordinates separated with semicolon");
+                            if (coordArray === null) {
+                                return false;
+                            }
+                            coordArray = coordArray.split(",");
+                            meshPosition.set(+coordArray[0], +coordArray[1], +coordArray[2]);
+                            if (!meshPosition) {
+                                alert("Enter valid center coordinates");
+                                return false;
+                            }
+                            radius = parseFloat( prompt("Enter sphere radius:") );
+                            if (!radius) {
+                                alert("Enter valid radius");
+                                return false;
+                            }
+                        break;
+                    case "box":
+                            boxSizes = prompt("Specify the sizes separated with semicolon");
+                            if (boxSizes === null) {
+                                return false;
+                            }
+                            boxSizes = boxSizes.split(",");
+                            let pos = prompt("Enter position coordinates separated with semicolon:");
+                            if (pos === null) {
+                                return false;
+                            }
+                            pos = pos.split(",");
+                            meshPosition.set(+pos[0], +pos[1], +pos[2]);
+                            if (!meshPosition) {
+                                alert("Enter valid box center coordinates");
+                                return false;
+                            }
+                        break;
+                    case "cylinder":
+                        let coordArrayCyl = prompt("Specify the position of cylinder separated with semicolon");
+                        if (coordArrayCyl === null) {
+                            return false;
+                        }
+                        coordArrayCyl = coordArrayCyl.split(",");
+                        meshPosition.set(+coordArrayCyl[0], +coordArrayCyl[1], +coordArrayCyl[2]);
+                        radius = parseFloat( prompt("Enter radius:") );
+                        if (!meshPosition) {
+                            alert("Enter valid center coordinates");
+                            return false;
+                        }
+                        if (!radius) {
+                            alert("Enter valid radius");
+                            return false;
+                        }
+                        cylHeight = parseFloat( prompt("Enter cylinder height:") );
+                        if (!cylHeight) {
+                            alert("Enter valid height for cylinder");
+                            return false;
+                        }
+                        break;
+                    case "cone":
+                        let coordArrayCone = prompt("Specify the position of cone separated with semicolon");
+                        if (coordArrayCone === null) {
+                            return false;
+                        }
+                        coordArrayCone = coordArrayCone.split(",");
+                        meshPosition.set(+coordArrayCone[0], +coordArrayCone[1], +coordArrayCone[2]);
+                        radius = parseFloat( prompt("Enter radius for base:") );
+                        if (!meshPosition) {
+                            alert("Enter valid center coordinates");
+                            return false;
+                        }
+                        if (!radius) {
+                            alert("Enter valid radius");
+                            return false;
+                        }
+                        cylHeight = parseFloat( prompt("Enter cone height:") );
+                        if (!cylHeight) {
+                            alert("Enter valid height for cylinder");
+                            return false;
+                        }
+                        break;
+                }
+                
                 return true;
             },
             processConstruction: function(e) {
-                mouse3D = toWorldSpace(mmove, cnvParams.w, cnvParams.h, cnvParams.camera, mat4);    //  wroung way
+                switch (subtoolName) {
+                    case "sphererad":               
+                        break;
+                    case "box":                  
+                        break;
+                    case "cylinder":
+                        break;
+                }
                 
-                helpCenterMesh.position.set(mouse3D.x, 0, mouse3D.z);
-                
-                radius = helpCenterMesh.position.clone().sub(mdown3D).length();
-                
+                //mouse3D = toWorldSpace(mmove, cnvParams.w, cnvParams.h, cnvParams.camera, mat4);    //  wroung way                
+                //helpCenterMesh.position.set(mouse3D.x, 0, mouse3D.z);                
+                //radius = helpCenterMesh.position.clone().sub(mdown3D).length();                
                 return shapeParts;
             },
             constructionEnding: function() {
-                return clicks == 1;
+                return true;    //  clicks == 1;
             },				
             endConstruction: function() {
                 switch (subtoolName) {
                     case "sphererad":
                         let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
-                        let shpereMat = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 0.8});
+                        let shpereMat = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(sphereGeom, shpereMat);        
                     break;
                     case "box":
-                        let boxGeom = new THREE.BoxGeometry(300, 300, 300);
-                        let boxMat = new THREE.MeshPhongMaterial({color: 0x112233, transparent: true, opacity: 0.8});
+                        let boxGeom = new THREE.BoxGeometry(+boxSizes[0], +boxSizes[1], +boxSizes[2]);
+                        let boxMat = new THREE.MeshLambertMaterial({color: 0x112233, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(boxGeom, boxMat);        
                     break;
-                    case "cylinder":
-                        let cylGeom = new THREE.CylinderGeometry(200, 200, 500, 32, 32);
-                        let cylMat = new THREE.MeshPhongMaterial({color: 0x554433, transparent: true, opacity: 0.8});
+                    case "cylinder": case "cone":
+                        let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, 32, 32);
+                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : 0x554433, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(cylGeom, cylMat);
                     break;
                 }
-                mesh.position.set(helpCenterMesh.position.x, 0, helpCenterMesh.position.z)
-                cnvParams.scene.add(mesh);
+                let container = new THREE.Object3D();
+                container.add(mesh);
+                container.position.set(meshPosition.x, meshPosition.y, meshPosition.z);                
+                cnvParams.scene.add(container);
+                shapes_3D.set(subtoolName + container.uuid, container);
+                
                 cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
                 
                 shapeParts = [];
@@ -812,7 +902,7 @@
                 case "circle":
                     return getCircleConstructor(subtoolName,    this.cnvParams, mdown, mmove, this.shapes);
                 case "_3DShape":
-                    return get3DShapesConstructor(subtoolName,  this.cnvParams, mdown, mmove, this.shapes);
+                    return get3DShapesConstructor(subtoolName,  this.cnvParams, mdown, mmove, this.shapes, this.shapes_3D);
                 default:
                     return false;
             }
