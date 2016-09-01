@@ -1,7 +1,7 @@
 "use strict";
 
 // TODO:
-// 1.   
+// 1. 
 
 ;(function($, THREE, Global) {
     

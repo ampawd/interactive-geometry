@@ -1,7 +1,7 @@
 "use strict";
 
 // TODO:
-// 1. 
+// 1.
 
 ;(function($, THREE, Global) {
 	
@@ -163,6 +163,7 @@
 		
 		prepare3DShapes();
 		updateCamera();
+		cameraParams.light1.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
 		cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);			//	initial rendering		
 		create3DInteractivities();
     }
@@ -181,6 +182,7 @@
         }
 		
 		let onmousedown = function(e) {
+			let light = cnvParams.scene.getObjectByName("light1");
 			cameraParams.mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
 			cameraParams.thetam = cameraParams.theta;
 			cameraParams.phim = cameraParams.phi;						
@@ -200,6 +202,7 @@
 					}
 				});
 				
+				light && light.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
 				cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);
 			}
 			let onmup = function(e) {
