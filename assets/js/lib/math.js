@@ -509,6 +509,18 @@
         return new THREE.Vector3(x, y, 0).applyMatrix4(mat4);
     }
     
+    function toClipSpace(point2D, w, h, result) {
+        let x = 2 * point2D.x / w - 1;
+        let y = 1 - 2 * point2D.y / h;
+        result.set(x, y, 0);
+    }
+    
+    function getPickedObjects3D(objects, camera, mouseVector) {
+        let raycaster = new THREE.Raycaster();
+        raycaster.set(camera.position, mouseVector.sub(camera.position).normalize());
+        return raycaster.intersectObjects( objects );
+    }
+    
     Global.math = Global.math || {
         Vec2: Vec2,
         Vec3: Vec3,
@@ -524,7 +536,9 @@
         radToDeg: radToDeg,
         degToRad: degToRad,
         getAngle: getAngle,
-        toWorldSpace: toWorldSpace
+        toWorldSpace: toWorldSpace,
+        toClipSpace: toClipSpace,
+        getPickedObjects3D: getPickedObjects3D  
     };
 
 })(jQuery, THREE, DSSGeometry);

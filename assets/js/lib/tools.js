@@ -26,6 +26,8 @@
         radToDeg = Global.math.radToDeg,
         degToRad = Global.math.degToRad,
         toWorldSpace = Global.math.toWorldSpace,
+        toClipSpace = Global.math.toClipSpace,
+        getPickedObjects3D =  Global.math.getPickedObjects3D,
         GeometryEngine = Global.engine.GeometryEngine;
     
     
@@ -729,9 +731,6 @@
         container,
         cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
         cnvOffsetY = cnvParams.cnvOffsetY,
-        sphereGeom = new THREE.SphereGeometry(11, 32, 32),
-        shpereMat = new THREE.MeshPhongMaterial({color: 0x000000}),
-        helpCenterMesh = new THREE.Mesh(sphereGeom, shpereMat),
         mouse3D = new THREE.Vector3(),
         mdown3D = new THREE.Vector3(),
         mat4 = new THREE.Matrix4(),
@@ -912,12 +911,69 @@
                 }
                 container.add(mesh);              
                 cnvParams.scene.add(container);
-                shapes_3D.set(subtoolName + container.uuid, container);                
+                //container.name = subtoolName;
+                shapes_3D.set(subtoolName + container.uuid, container);
+                //log(cnvParams.scene.children);
                 cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
                 
                 shapeParts = [];
                 clicks = 0;
                 radius = 0;
+                return mesh;
+            },
+            constructionNextStep: function() {
+                clicks++;
+            }
+        };
+    }
+    
+    function getSurfacesConstructor(subtoolName, cnvParams, mdown, mmove, shapes, shapes_3D) {
+        let renderParams = {
+            strokeStyle: "#000",
+            fillColor: "#569",
+            lineWidth: 1
+        },
+        geometryEngine = new GeometryEngine(),
+        mesh = 0,
+        shapeParts = [],
+        meshPosition = new THREE.Vector3(),
+        clicks = 0,
+        container = new THREE.Object3D(),
+        cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
+        cnvOffsetY = cnvParams.cnvOffsetY,
+        mouse3D = new THREE.Vector3(),
+        mdown3D = new THREE.Vector3();
+        
+        return {
+            constructionStarted: function() {
+                return clicks == 0;
+            },				
+            initConstruction: function() {
+                toClipSpace(mdown, cnvParams.w, cnvParams.h, mdown3D);
+                let objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
+                //log(objs)
+            },
+            constructionReady: function() {
+                
+                
+                return true;
+            },
+            processConstruction: function(e) {
+                               
+                return shapeParts;
+            },
+            constructionEnding: function() {
+                return true;
+            },				
+            endConstruction: function() {
+                           
+                //container.add(mesh);              
+                //cnvParams.scene.add(container);
+                //shapes_3D.set(subtoolName + container.uuid, container);                
+                //cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
+                
+                shapeParts = [];
+                clicks = 0;
                 return mesh;
             },
             constructionNextStep: function() {
@@ -947,6 +1003,8 @@
                     return getCircleConstructor(subtoolName,    this.cnvParams, mdown, mmove, this.shapes);
                 case "_3DShape":
                     return get3DShapesConstructor(subtoolName,  this.cnvParams, mdown, mmove, this.shapes, this.shapes_3D);
+                case "surfaces":
+                    return getSurfacesConstructor(subtoolName,  this.cnvParams, mdown, mmove, this.shapes, this.shapes_3D);
                 default:
                     return false;
             }
