@@ -131,7 +131,7 @@ html, body {
 	background: #ccc !important;
 }
 
-._3DShape {
+._3DShape, .surfaces {
 	display: none !important;
 }
 
