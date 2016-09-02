@@ -71,6 +71,7 @@
 		uiParams._3dviewCheckBox = $('#3dview-checkbox');
 		uiParams.projectionSelect = $('#projection_select');
 		uiParams._3DShapesTools = $("._3DShape");
+		uiParams.surfaceShapesTools = $(".surfaces");
 		
 		cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent)/100 );
 		cnvParams.cnv.attr("height", documentHeight - uiParams.topToolsContainerFullHeight - 10);
@@ -177,7 +178,7 @@
 		$("#canvas2DOverlay").off("mouseup");
 		
 		//	disable camera rotation when constructing 3D shape
-		if (uiParams.selectedToolName == "_3DShape") { 	
+		if (uiParams.selectedToolName == "_3DShape" || uiParams.selectedToolName == "surfaces") { 	
             return;
         }
 		
@@ -262,6 +263,7 @@
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			if (uiParams._3dviewCheckBox.is(':checked')) {
 				uiParams._3DShapesTools.attr("style", "display: inline-block !important");
+				uiParams.surfaceShapesTools.attr("style", "display: inline-block !important");
 				uiParams.projectionSelect.removeAttr("disabled");
 				cnvParams._3DviewEnabled = true;
 				cnvParams.cnv.attr("width", actualWindowWidth/factor - ((actualWindowWidth/factor)*percent)/100 );
@@ -271,6 +273,7 @@
 			} else {
 				uiParams.projectionSelect.attr("disabled", true);
 				uiParams._3DShapesTools.attr("style", "display: none !important");
+				uiParams.surfaceShapesTools.attr("style", "display: none !important");
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
 				//cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
@@ -546,7 +549,7 @@
 		}
 		
 		cnvParams.cnv.mousedown(function(e) {
-			if (toolName === "_3DShape") return;
+			if (toolName === "_3DShape" || toolName === "surfaces") return;
             
 			$(".active-subtool-help").css({"display": "none"});
 			uiParams.subTools.css({"visibility" : "hidden"});
@@ -610,7 +613,7 @@
 		$("#canvas2DOverlay").mousedown(onCnv3DMdown);
 		
 		function onCnv3DMdown(e) {
-			if (toolName !== "_3DShape") return;
+			if (toolName !== "_3DShape" && toolName !== "surfaces") return;
 			$(".active-subtool-help").css({"display": "none"});
 			uiParams.subTools.css({"visibility" : "hidden"});
 			e.stopPropagation();

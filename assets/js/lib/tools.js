@@ -20,6 +20,7 @@
         Circle = Global.shapes.Circle,
         Point = Global.shapes.Point,
         Text2d = Global.shapes.Text2d,
+        createPoint3D = Global.shapes.createPoint3D,
 		Vec2 = Global.math.Vec2,
         getAngle = Global.math.getAngle,
         radToDeg = Global.math.radToDeg,
@@ -725,15 +726,16 @@
         clicks = 0,
         cylHeight = 0,
         boxSizes,
+        container,
         cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
-        cnvOffsetY = cnvParams.cnvOffsetY;
-        let sphereGeom = new THREE.SphereGeometry(11, 32, 32);
-        let shpereMat = new THREE.MeshPhongMaterial({color: 0x000000});
-        let helpCenterMesh = new THREE.Mesh(sphereGeom, shpereMat);
-        let mouse3D, mat4 = new THREE.Matrix4(), mat41 = new THREE.Matrix4();
-        let mdown3D = new THREE.Vector3();
-        
-        //cnvParams.scene.add(helpCenterMesh);
+        cnvOffsetY = cnvParams.cnvOffsetY,
+        sphereGeom = new THREE.SphereGeometry(11, 32, 32),
+        shpereMat = new THREE.MeshPhongMaterial({color: 0x000000}),
+        helpCenterMesh = new THREE.Mesh(sphereGeom, shpereMat),
+        mouse3D = new THREE.Vector3(),
+        mdown3D = new THREE.Vector3(),
+        mat4 = new THREE.Matrix4(),
+        mat41 = new THREE.Matrix4();
         
         return {
             constructionStarted: function() {
@@ -870,29 +872,47 @@
                 return true;    //  clicks == 1;
             },				
             endConstruction: function() {
+                container = new THREE.Object3D();
+                container.position.set(meshPosition.x, meshPosition.y, meshPosition.z);  
                 switch (subtoolName) {
                     case "sphererad":
                         let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
-                        let shpereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: 0.85});
-                        mesh = new THREE.Mesh(sphereGeom, shpereMat);        
+                        let sphereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: 0.85});
+                        mesh = new THREE.Mesh(sphereGeom, sphereMat);
+                        mesh.geometry.computeBoundingSphere();
+                        let center = mesh.geometry.boundingSphere.center;
+                        container.add(createPoint3D(8, center.clone()));
                     break;
                     case "box":
                         let boxGeom = new THREE.BoxGeometry(+boxSizes[0], +boxSizes[1], +boxSizes[2]);
                         let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: 0.85});
-                        mesh = new THREE.Mesh(boxGeom, boxMat);        
+                        mesh = new THREE.Mesh(boxGeom, boxMat);
+                        boxGeom.vertices.forEach(function(vert) {
+                            container.add(createPoint3D(8, vert.clone()));    
+                        });                        
                     break;
                     case "cylinder": case "cone": case "prism":
                         let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, subtoolName == "prism" ? numVertices : 32, subtoolName == "prism" ? numVertices : 32);
                         let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : subtoolName == "prism" ? 0x123456 : 0x554433, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(cylGeom, cylMat);
+                        mesh.geometry.computeBoundingSphere();
+                        let centerCyl = mesh.geometry.boundingSphere.center;
+                        
+                        if (subtoolName === "cylinder" || subtoolName === "cone") {
+                            container.add(createPoint3D(8, new THREE.Vector3(centerCyl.x, centerCyl.y - cylHeight * 0.5, centerCyl.z)));
+                            container.add(createPoint3D(8, new THREE.Vector3(centerCyl.x, centerCyl.y + cylHeight * 0.5, centerCyl.z)));
+                        }
+                        
+                        if (subtoolName === "prism") {
+                            cylGeom.vertices.forEach(function(vert) {
+                                container.add(createPoint3D(8, vert.clone()));    
+                            });
+                        }                        
                     break;
                 }
-                let container = new THREE.Object3D();
-                container.add(mesh);
-                container.position.set(meshPosition.x, meshPosition.y, meshPosition.z);                
+                container.add(mesh);              
                 cnvParams.scene.add(container);
-                shapes_3D.set(subtoolName + container.uuid, container);
-                
+                shapes_3D.set(subtoolName + container.uuid, container);                
                 cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
                 
                 shapeParts = [];

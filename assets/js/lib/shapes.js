@@ -2198,6 +2198,7 @@
         Circle: Circle,
         Point: Point,
         Text2d, Text2d,
+        createPoint3D: createPoint3D,
         createCoordinateSystem: createCoordinateSystem
     };
 
