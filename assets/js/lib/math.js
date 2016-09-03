@@ -517,8 +517,8 @@
     
     function getPickedObjects3D(objects, camera, mouseVector) {
         let raycaster = new THREE.Raycaster();
-        raycaster.set(camera.position, mouseVector.sub(camera.position).normalize());
-        return raycaster.intersectObjects( objects );
+        raycaster.setFromCamera(mouseVector, camera);
+        return raycaster.intersectObjects(objects, true);
     }
     
     Global.math = Global.math || {

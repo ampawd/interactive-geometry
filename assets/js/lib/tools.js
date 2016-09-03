@@ -906,14 +906,12 @@
                             cylGeom.vertices.forEach(function(vert) {
                                 container.add(createPoint3D(8, vert.clone()));    
                             });
-                        }                        
+                        }
                     break;
                 }
-                container.add(mesh);              
+                container.add(mesh);
                 cnvParams.scene.add(container);
-                //container.name = subtoolName;
-                shapes_3D.set(subtoolName + container.uuid, container);
-                //log(cnvParams.scene.children);
+                shapes_3D.set(container.uuid, container);
                 cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
                 
                 shapeParts = [];
@@ -930,8 +928,8 @@
     function getSurfacesConstructor(subtoolName, cnvParams, mdown, mmove, shapes, shapes_3D) {
         let renderParams = {
             strokeStyle: "#000",
-            fillColor: "#569",
-            lineWidth: 1
+            fillColor:   "#569",
+            lineWidth:    1
         },
         geometryEngine = new GeometryEngine(),
         mesh = 0,
@@ -943,7 +941,14 @@
         cnvOffsetY = cnvParams.cnvOffsetY,
         mouse3D = new THREE.Vector3(),
         mdown3D = new THREE.Vector3();
-        
+        //let objects = [];
+        //for (let i = 0; i < cnvParams.scene.children.length; i++) {
+        //    if (cnvParams.scene.children[i].name !== "coordSystem" && cnvParams.scene.children[i].name !== "light1") {
+        //        cnvParams.scene.children[i].children.forEach(function(mesh) {
+        //            objects.push(mesh);     //  raycaster.intersects(objects) objects must be an array of meshes (not Object3D's)
+        //        });
+        //    }
+        //}
         return {
             constructionStarted: function() {
                 return clicks == 0;
@@ -951,22 +956,20 @@
             initConstruction: function() {
                 toClipSpace(mdown, cnvParams.w, cnvParams.h, mdown3D);
                 let objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
-                //log(objs)
+                log(objs);
             },
             constructionReady: function() {
-                
-                
                 return true;
             },
             processConstruction: function(e) {
-                               
+                
                 return shapeParts;
             },
             constructionEnding: function() {
-                return true;
-            },				
+                return false;
+            },
             endConstruction: function() {
-                           
+                
                 //container.add(mesh);              
                 //cnvParams.scene.add(container);
                 //shapes_3D.set(subtoolName + container.uuid, container);                

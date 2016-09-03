@@ -151,14 +151,20 @@
 		cameraParams.light1 = new THREE.DirectionalLight(0xffffff, 0.3);
 		cameraParams.light1.name = "light1";
 		cameraParams.light1.position.set(500, 500, 100);
-		cnvParams.scene.add(cameraParams.light1);
+		
+		if (cnvParams.scene.getObjectByName("light1") === undefined) {
+			cnvParams.scene.add(cameraParams.light1);    
+        }
 		
 		//cameraParams.light2 = new THREE.DirectionalLight(0xffffff, 0.8);
 		//cameraParams.light2.name = "light2";
 		//cameraParams.light2.position.set(-500, 500, -700);			
 		//cnvParams.scene.add(cameraParams.light2);
 
-		cnvParams.scene.add(coordSystem);	
+		if (cnvParams.scene.getObjectByName("coordSystem") === undefined) {
+			cnvParams.scene.add(coordSystem);   
+        }
+		
 		Shape.prototype.cnvW = cnv3DWidth;
 		Shape.prototype.camera = cnvParams.camera;
 		
@@ -269,13 +275,12 @@
 				cnvParams.cnv.attr("width", actualWindowWidth/factor - ((actualWindowWidth/factor)*percent)/100 );
 				cnvParams.w = cnvParams.cnv.width();		
 				cnv3DWidth = cnvParams.bothCanvasesWidth - cnvParams.w - 5;
-				setUP3DView(cnv3DWidth);				
+				setUP3DView(cnv3DWidth);
 			} else {
 				uiParams.projectionSelect.attr("disabled", true);
 				uiParams._3DShapesTools.attr("style", "display: none !important");
 				uiParams.surfaceShapesTools.attr("style", "display: none !important");
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
-				//cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
 				cnvParams._3DviewEnabled = false;
 				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent) / 100 );
@@ -598,6 +603,7 @@
 				
 				Shape.prototype.cnv2DOverlayContext.font = "15px Arial";
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+				
 				renderShapes();
 				return;
 			}
@@ -640,13 +646,13 @@
 				cnvParams.cnv3D.off("mousemove");
 				$("#canvas2DOverlay").off("mousemove");
 				
-				shape = shapeConstructor.endConstruction();
-				//shapes_3D.set(shape)
 				
+				shape = shapeConstructor.endConstruction();
 				if (!shape) {
 					log("shape wasn't created");
 					return;
-				}				
+				}
+				
 				updateCamera();				
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
 				return;
@@ -655,15 +661,12 @@
 			shapeConstructor.constructionNextStep(); 
         }
 		
-		function onCnv3DMmove(e) {
-			//mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,	
-			//	-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));		
-			
+		function onCnv3DMmove(e) {			
 			mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5,
 					 (e.clientY - cnvParams.cnvOffsetY));			
-			
-			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);					
+
 			shapeParts = shapeConstructor.processConstruction(e);
+			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
         }
 	}

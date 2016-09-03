@@ -2165,6 +2165,7 @@
         let mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
         let point3D = new THREE.Mesh( point3DGeom, mat );
         point3D.position.set(v.x || 0, v.y || 0, v.z || 0);
+        //point3D.name = "p123";
         return point3D;
     }
     
