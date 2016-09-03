@@ -1238,7 +1238,6 @@
         }
         
         this.renderParams.fillColor = attrs.fillColor;
-        log(this.renderParams.fillColor)
         //this.renderParams.sideColor = attrs.strokeStyle;
         this.setBoundaryWidth(attrs.lineWidth || 1);
         if (this.container3) {

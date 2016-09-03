@@ -305,9 +305,9 @@
 					
 //					if (Shape.nextLetterIndex > 0) {
 //                        Shape.nextLetterIndex--;
-//                    }
-					
+//                    }					
 					//shapes.get(selID).points.forEach(function(p) { p.setLetter(""); });
+					
 					shapes.delete(selID);
 					for (let entry of shapes) {
 						entry[1].connectedShapes.clear();
@@ -350,12 +350,13 @@
 		
 		uiParams.topTools.mouseover(function(e) {
 			$(".active-subtool-help").css({"display": "none"});
-			//if ( $(e.target).find(".sub-tools").css('visibility') === "hidden" ) {
-				
+
+
+			if ( $(e.target).find(".sub-tools").css('visibility') === "hidden" || uiParams.selectedToolName == "move" ) {	//	if subtools div block is hidden show tool explanations
 				if ($(e.target).attr("class").indexOf("top-tool") > -1) {
 					$(e.target).find(".active-subtool-help").fadeIn();
 				}
-			//}
+			}
 		});
 		
 		uiParams.topTools.mouseout(function(e) {
@@ -461,50 +462,51 @@
 				defTool.find("img").attr("src", $(e.currentTarget).find("img").attr("src"));
 				defTool.attr("class", "active-subtool " + uiParams.activeSubToolName);
 				
+				
 				let helpText = $("." + uiParams.activeSubToolName).find(".tool-help").html();
-				defTool.parent().parent().find(".active-subtool-help").html(helpText); 
+				defTool.parent().find(".active-subtool-help").html(helpText); 
 			});
 		});
 	}
 	
-	function setCurrentLoopStep(historyData) {
-		let cnvImg = new Image();
-		cnvImg.src = historyData[0];			
-		cnvImg.onload = function() {
-			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-			cnvParams.ctx.drawImage(cnvImg, 0, 0);
-		};
-		
-		for (let entry of historyData[1]) {
-			let shape = shapes.get(entry[0]);
-			if (shape) {				
-				for (let i = 0; i < shape.points.length; i++) {
-					shape.points[i].set(entry[1][i].x, entry[1][i].y);    
-				}				
-			}
-		}
+//	function setCurrentLoopStep(historyData) {
+//		let cnvImg = new Image();
+//		cnvImg.src = historyData[0];			
+//		cnvImg.onload = function() {
+//			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+//			cnvParams.ctx.drawImage(cnvImg, 0, 0);
+//		};
+//		
+//		for (let entry of historyData[1]) {
+//			let shape = shapes.get(entry[0]);
+//			if (shape) {				
+//				for (let i = 0; i < shape.points.length; i++) {
+//					shape.points[i].set(entry[1][i].x, entry[1][i].y);    
+//				}				
+//			}
+//		}
 //		GeometryEngine.prototype.shapes = shapes;
 //		for (let entry of shapes) {
 //            entry[1].connectedShapes.clear();
 //			GeometryEngine.prototype.createConnectedShapesGroup(entry[1]);
 //        }
-	}
+//	}
 	
-	function saveCurrentTransformStep(same) {
-		if (same) {
-			cnvParams.transformHistory.pop();
-		}
-		let transformedPoints = new Map(), pointsCopy;
-		for (let entry of shapes) {
-			pointsCopy = [];
-			for (let i = 0; i < entry[1].points.length; i++) {
-				pointsCopy.push( entry[1].points[i].copy() );
-			}
-			transformedPoints.set(entry[0], pointsCopy);
-		}
-		cnvParams.transformHistory.push( [cnvParams.cnv[0].toDataURL(), transformedPoints] );
-		cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
-	}
+	//function saveCurrentTransformStep(same) {
+	//	if (same) {
+	//		cnvParams.transformHistory.pop();
+	//	}
+	//	let transformedPoints = new Map(), pointsCopy;
+	//	for (let entry of shapes) {
+	//		pointsCopy = [];
+	//		for (let i = 0; i < entry[1].points.length; i++) {
+	//			pointsCopy.push( entry[1].points[i].copy() );
+	//		}
+	//		transformedPoints.set(entry[0], pointsCopy);
+	//	}
+	//	cnvParams.transformHistory.push( [cnvParams.cnv[0].toDataURL(), transformedPoints] );
+	//	cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
+	//}
 	
 	function setupHistory() {
 		uiParams.reloadBtn.click(function() {
@@ -520,11 +522,12 @@
 			shapes.clear();
 			shapes_3D.clear();
 			deletedShapes.clear();
-			cnvParams.transformHistory = [];
+			//cnvParams.transformHistory = [];
 			Line.count = Ray.count = Segment.count = Vector.count = Polygon.count = 
 			Triangle.count = RegularPolygon.count = Circle.count = Point.count = Text2d.count = 0;
 			Shape.nextLetterIndex = 0;
 			Shape.letterIndexMark = 0;
+			$(".active-subtool-help").css({"display": "none"});
 		});
 //		uiParams.undoBtn.click(function() {
 //			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
@@ -590,6 +593,7 @@
 		}
 		
 		cnvParams.cnv.mousedown(function(e) {
+			$(".active-subtool-help").css({"display": "none"});
 			cnvParams.transformHistory = [];
 			uiParams.subTools.css({"visibility" : "hidden"});
 			e.stopPropagation();
@@ -654,6 +658,8 @@
 			selShape;
 			
 		cnvParams.cnv.mousedown(function(e) {
+			$(".active-subtool-help").css({"display": "none"});
+			
 			mdown.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
 			connectedShapesGroup = geometryEngine.getConnectedShapesGroupByPoint(mdown);
 			cnvParams.selectedShape = shapes.get(geometryEngine.getShapeIDByPoint(mdown));
