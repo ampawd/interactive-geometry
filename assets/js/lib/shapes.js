@@ -1,8 +1,7 @@
 "use strict";
 
 // TODO:
-// 1. Show shape designations
-// 2. Fix bug with Segment.prototype.contains method (sometimes returns false for fixed length segments because of the condition Math.floor(a1 + a2) == Math.floor(this.length))
+// 1. Fix bug with Segment.prototype.contains method (sometimes returns false for fixed length segments because of the condition Math.floor(a1 + a2) == Math.floor(this.length))
 
 ;(function($, THREE, Global) {
     
@@ -11,6 +10,7 @@
         Vec3 = Global.math.Vec3,
         Mat2 = Global.math.Mat2,
         Mat3 = Global.math.Mat3,
+        toWorldSpace = Global.math.toWorldSpace,
         radToDeg = Global.math.radToDeg,
         degToRad = Global.math.degToRad,
         getAngle = Global.math.getAngle,
@@ -1070,13 +1070,11 @@
     };
     
     Vector.prototype.transform = function(transformProps, mdown, mmove) {
-        let points = this.points, diff = new Vec2();
-        if (!this.container3) {
-            log("can't transform 3D version of this shape ...");
-            //return;
+        let points = this.points, diff = new Vec2(), sh;
+        if (this.container3) {
+            sh = this.container3.getObjectByName("child" + this.getID());    
         }
-        let sh = this.container3.getObjectByName("child" + this.getID());
-        
+          
         if (!this.transformable) {
             return;
         }
@@ -1091,11 +1089,11 @@
         if (this.translatable && transformProps.translating) {
             diff = mmove.sub(mdown);
             this.translate(diff);
-            sh.translateX(diff.x);
-            sh.translateZ(diff.y);
+            sh && sh.translateX(diff.x);
+            sh && sh.translateZ(diff.y);
             mdown.set(mmove.x, mmove.y);
         }
-        this.transformIn_3D();
+        sh && this.transformIn_3D();
         this.updateMeasureTexts();
     };
     
@@ -1285,7 +1283,7 @@
             parent.add(p);
         }
         let polygonGeom = new THREE.ShapeGeometry(polygonShape);
-        for (let i = 0; i < polygonGeom.vertices.length; i++) {	//	maping to xz plane
+        for (let i = 0; i < polygonGeom.vertices.length; i++) {         //	maping to xz plane
             temp = polygonGeom.vertices[i].y;
             polygonGeom.vertices[i].y = 0;
             polygonGeom.vertices[i].z = temp;
@@ -1462,8 +1460,7 @@
             this.outCircle = new Circle(new Vec2(x0, y0), r, renderParams || {});
             this.outCircle.circleCenter = new Circle(new Vec2(x0, y0), 1, {});
         return this.outCircle;
-    };
-    
+    };    
     
     /**
      *  class RegularPolygon  
@@ -1937,7 +1934,7 @@
     
     Point.prototype.render = function() {
         if (!this.isVisible) {
-            log("this point is NOT visible")
+            //log("this point is NOT visible")
             return;
         }        
         let ctx = this.ctx, center = this;
@@ -2201,6 +2198,7 @@
         Circle: Circle,
         Point: Point,
         Text2d, Text2d,
+        createPoint3D: createPoint3D,
         createCoordinateSystem: createCoordinateSystem
     };
 

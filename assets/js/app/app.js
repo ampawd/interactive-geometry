@@ -1,7 +1,7 @@
 "use strict";
 
 // TODO:
-// 1. Proper transform step back and forward functionality !?
+// 1.
 
 ;(function($, THREE, Global) {
 	
@@ -56,7 +56,6 @@
 		cnvParams.cnv2DOverlay = $("#canvas2DOverlay");
 		cnvParams.cnv2DOverlayContext = cnvParams.cnv2DOverlay[0].getContext('2d');
 		
-		cnvParams.transformHistory = [];
 		cnvParams.historyIndex = 0;
 		uiParams.topTools = $('.top-tool');
 		uiParams.subTools = $('.sub-tools');
@@ -67,15 +66,18 @@
 			  + parseInt(uiParams.topToolsContainer.css("padding-top")) + parseInt(uiParams.topToolsContainer.css("padding-bottom"));
 			  
 		uiParams.reloadBtn = $(".reloadBtn");
-		uiParams.undoBtn = $(".undoBtn");
-		uiParams.redoBtn = $(".redoBtn");
+		//uiParams.undoBtn = $(".undoBtn");
+		//uiParams.redoBtn = $(".redoBtn");
 		uiParams._3dviewCheckBox = $('#3dview-checkbox');
 		uiParams.projectionSelect = $('#projection_select');
+		uiParams._3DShapesTools = $("._3DShape");
+		uiParams.surfaceShapesTools = $(".surfaces");
 		
 		cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent)/100 );
 		cnvParams.cnv.attr("height", documentHeight - uiParams.topToolsContainerFullHeight - 10);
 		cnvParams.w = cnvParams.cnv.width();
 		cnvParams.h = cnvParams.cnv.height();
+		cnvParams.bothCanvasesWidth = cnvParams.w;
 		cnvParams.cnvOffsetX = (actualWindowWidth - cnvParams.w) / 2,
 		cnvParams.cnvOffsetY = uiParams.topToolsContainerFullHeight;
 		cnvParams.cnv.css({"left": cnvParams.cnvOffsetX, "top": cnvParams.cnvOffsetY});
@@ -84,10 +86,11 @@
 			newTarget: new THREE.Vector3(),
 			mdown:	   new THREE.Vector2(),
 			mmove: 	   new THREE.Vector2(),
-			phi:   	   25,
-			theta:	  -15,
+			phi:   	   25,	//	25
+			theta:	   -15,	//	-15
 			phim:	   0,
-			thetam:	   0
+			thetam:	   0,
+			fov:	   55
 		};
 		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
 	}
@@ -98,14 +101,21 @@
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
 		updateCamera = function() {
+			if (!cnvParams.camera) {
+                log("cnvParams.camera is falsy");
+				return;
+            }
 			cnvParams.camera.position.x = cameraParams.distance * Math.sin(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);
 			cnvParams.camera.position.y = cameraParams.distance * Math.sin(cameraParams.phi * degToRad);
 			cnvParams.camera.position.z = cameraParams.distance * Math.cos(cameraParams.theta * degToRad) * Math.cos(cameraParams.phi * degToRad);						
+
 			cameraParams.newTarget.set(-cnvParams.camera.position.x, -cnvParams.camera.position.y, -cnvParams.camera.position.z);
 			cnvParams.camera.lookAt(cameraParams.newTarget);
+			cnvParams.camera.updateProjectionMatrix();
+			
 			Shape.prototype.camera = cnvParams.camera;
 		};
-	}	
+	}
 	
 	function prepare3DShapes() {
 		shapes.forEach(function(shape, shapeID) {
@@ -116,105 +126,156 @@
 		});
 	}
 	
+	function setUP3DView(cnv3DWidth) {
+        if (uiParams.projectionSelect.val() === "persp") {
+			cnvParams.camera = new THREE.PerspectiveCamera(cameraParams.fov, cnv3DWidth/cnvParams.h, 1, 3000);
+			cnvParams.camera.position.z = 1880;
+			cameraParams.distance = cnvParams.camera.position.length();
+		} else {
+			cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
+			cameraParams.distance = 1;
+		}	
+		
+		cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
+		cnvParams.renderer.setClearColor(0xffffff, 1);
+		cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+		$(cnvParams.renderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
+		
+		cnvParams.cnv2DOverlay.attr("width", cnv3DWidth);
+		cnvParams.cnv2DOverlay.attr("height", cnvParams.h);
+		cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});
+		
+		let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
+		coordSystem.name = "coordSystem";
+		
+		cameraParams.light1 = new THREE.DirectionalLight(0xffffff, 0.3);
+		cameraParams.light1.name = "light1";
+		cameraParams.light1.position.set(500, 500, 100);
+		cnvParams.scene.add(cameraParams.light1);
+		
+		//cameraParams.light2 = new THREE.DirectionalLight(0xffffff, 0.8);
+		//cameraParams.light2.name = "light2";
+		//cameraParams.light2.position.set(-500, 500, -700);			
+		//cnvParams.scene.add(cameraParams.light2);
+
+		cnvParams.scene.add(coordSystem);	
+		Shape.prototype.cnvW = cnv3DWidth;
+		Shape.prototype.camera = cnvParams.camera;
+		
+		prepare3DShapes();
+		updateCamera();
+		cameraParams.light1.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
+		cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);			//	initial rendering		
+		create3DInteractivities();
+    }
+	
+	function create3DInteractivities() {
+        cnvParams.cnv3D.off("mousedown");
+		cnvParams.cnv3D.off("mousemove");
+		cnvParams.cnv3D.off("mouseup");
+		$("#canvas2DOverlay").off("mousedown");
+		$("#canvas2DOverlay").off("mousemove");
+		$("#canvas2DOverlay").off("mouseup");
+		
+		//	disable camera rotation when constructing 3D shape
+		if (uiParams.selectedToolName == "_3DShape" || uiParams.selectedToolName == "surfaces") { 	
+            return;
+        }
+		
+		let onmousedown = function(e) {
+			let light = cnvParams.scene.getObjectByName("light1");
+			cameraParams.mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
+			cameraParams.thetam = cameraParams.theta;
+			cameraParams.phim = cameraParams.phi;						
+			let onmmove = function(e) {
+				cameraParams.mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
+			
+				cameraParams.theta = -(cameraParams.mmove.x - cameraParams.mdown.x) * 0.2 + cameraParams.thetam;
+				cameraParams.phi = (cameraParams.mmove.y - cameraParams.mdown.y) * 0.2 + cameraParams.phim;
+				cameraParams.phi = Math.min( 90, Math.max( 0, cameraParams.phi ) );
+				
+				updateCamera();
+				
+				cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+				shapes.forEach(function(shape) {
+					if (shape.className != "Text2d") {
+						shape.projectAndDrawLetters(); 
+					}
+				});
+				
+				light && light.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
+				cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);
+			}
+			let onmup = function(e) {
+				cnvParams.cnv3D.off("mousemove");
+				cnvParams.cnv3D.off("mouseup");
+				$("#canvas2DOverlay").off("mousemove");
+				$("#canvas2DOverlay").off("mouseup");	
+				Shape.prototype.camera = cnvParams.camera;
+			}
+			
+			cnvParams.cnv3D.mousemove(onmmove);
+			$("#canvas2DOverlay").mousemove(onmmove);					
+			cnvParams.cnv3D.mouseup(onmup);
+			$("#canvas2DOverlay").mouseup(onmup);
+		}
+		cnvParams.cnv3D.mousedown(onmousedown);
+		$("#canvas2DOverlay").mousedown(onmousedown);
+    }
+	
+	function deleteSelectedShape() {
+		if (cnvParams.selectedShape) {
+			let selID = cnvParams.selectedShape.getID();
+			if (shapes.has(selID)) {
+				cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+				cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+				
+				let shapesGroup = cnvParams.selectedShape.connectedShapes;					
+				shapesGroup.forEach(function(sh) {
+					sh.detach(selID);
+				});
+				
+				shapes.delete(selID);
+				for (let entry of shapes) {
+					entry[1].connectedShapes.clear();
+					geometryEngine.createConnectedShapesGroup(entry[1]);
+				}
+						  
+				if (shapes_3D.has(selID)) {
+					shapes_3D.delete(selID);
+				}
+				
+				let rObj = cnvParams.scene.getObjectByName(selID);
+					cnvParams.scene.remove(rObj);
+					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+					renderShapes();
+					cnvParams.selectedShape = 0;
+					disableSelectedShapeAttribControls();
+			}
+		}
+	}
+	
 	function setUpGlobalEvents() {
 		$(window).resize(initParams);
-		let factor = 2,
-			bothCanvasesWidth = cnvParams.w,
-			cnv3DWidth;
+		let factor = 2, cnv3DWidth;
 		
 		uiParams._3dviewCheckBox.click(function(e) {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			if (uiParams._3dviewCheckBox.is(':checked')) {
+				uiParams._3DShapesTools.attr("style", "display: inline-block !important");
+				uiParams.surfaceShapesTools.attr("style", "display: inline-block !important");
 				uiParams.projectionSelect.removeAttr("disabled");
 				cnvParams._3DviewEnabled = true;
 				cnvParams.cnv.attr("width", actualWindowWidth/factor - ((actualWindowWidth/factor)*percent)/100 );
 				cnvParams.w = cnvParams.cnv.width();		
-				cnv3DWidth = bothCanvasesWidth - cnvParams.w - 5;
-				
-				if (uiParams.projectionSelect.val() === "persp") {
-					cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
-					cnvParams.camera.position.z = 1900;
-					cameraParams.distance = cnvParams.camera.position.length();
-				} else {
-					cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
-					cameraParams.distance = 1;
-				}				
-				
-				cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
-				cnvParams.renderer.setClearColor(0xffffff, 1);
-				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
-				$(cnvParams.renderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
-				
-				cnvParams.cnv2DOverlay.attr("width", cnv3DWidth);
-				cnvParams.cnv2DOverlay.attr("height", cnvParams.h);
-				cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});				
-				let scene = cnvParams.scene;
-				let	renderer = cnvParams.renderer;
-				let light1 = new THREE.PointLight(0xffffff, 1, 5000);
-				let light2 = new THREE.PointLight(0xffffff, 1, 5000);
-				let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
-				light1.name = "light1"; light2.name = "light2";
-				coordSystem.name = "coordSystem";
-				light1.position.set(500, 500, 700);
-				light1.intensity = 1;
-				light2.position.set(-500, -500, 700);
-				light2.intensity = 1;
-				scene.add(light1);	
-				scene.add(light2);
-				scene.add(coordSystem);				
-				
-				Shape.prototype.cnvW = cnv3DWidth;
-				Shape.prototype.camera = cnvParams.camera;				
-				prepare3DShapes();
-				updateCamera();
-				renderer.render(scene,  cnvParams.camera);			//	initial rendering		
-				cnvParams.cnv3D.off("mousedown");
-				cnvParams.cnv3D.off("mousemove");
-				cnvParams.cnv3D.off("mouseup");
-				$("#canvas2DOverlay").off("mousedown");
-				$("#canvas2DOverlay").off("mousemove");
-				$("#canvas2DOverlay").off("mouseup");					
-				let onmousedown = function(e) {
-					cameraParams.mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
-					cameraParams.thetam = cameraParams.theta;
-					cameraParams.phim = cameraParams.phi;						
-					let onmmove = function(e) {
-						cameraParams.mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
-
-						cameraParams.theta = -(cameraParams.mmove.x - cameraParams.mdown.x) * 0.2 + cameraParams.thetam;
-						cameraParams.phi = (cameraParams.mmove.y - cameraParams.mdown.y) * 0.2 + cameraParams.phim;
-						cameraParams.phi = Math.min( 90, Math.max( 0, cameraParams.phi ) );
-						
-						updateCamera();
-						
-						cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
-						shapes.forEach(function(shape) {
-							if (shape.className != "Text2d")
-								shape.projectAndDrawLetters(); 
-						});
-						
-						renderer.render(scene,  cnvParams.camera);
-					}
-					let onmup = function(e) {
-						cnvParams.cnv3D.off("mousemove");
-						cnvParams.cnv3D.off("mouseup");
-						$("#canvas2DOverlay").off("mousemove");
-						$("#canvas2DOverlay").off("mouseup");	
-						Shape.prototype.camera = cnvParams.camera;
-					}
-					
-					cnvParams.cnv3D.mousemove(onmmove);
-					$("#canvas2DOverlay").mousemove(onmmove);					
-					cnvParams.cnv3D.mouseup(onmup);
-					$("#canvas2DOverlay").mouseup(onmup);
-				}
-				cnvParams.cnv3D.mousedown(onmousedown);
-				$("#canvas2DOverlay").mousedown(onmousedown);
-				
+				cnv3DWidth = cnvParams.bothCanvasesWidth - cnvParams.w - 5;
+				setUP3DView(cnv3DWidth);				
 			} else {
 				uiParams.projectionSelect.attr("disabled", true);
+				uiParams._3DShapesTools.attr("style", "display: none !important");
+				uiParams.surfaceShapesTools.attr("style", "display: none !important");
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
-				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
+				//cnvParams.scene.remove(cnvParams.scene.getObjectByName("light2"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
 				cnvParams._3DviewEnabled = false;
 				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent) / 100 );
@@ -224,6 +285,7 @@
 				cnvParams.cnv2DOverlay.attr("height", 1);
 				cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			}
+			
 			Shape.prototype._3DviewEnabled = cnvParams._3DviewEnabled;
 			renderShapes();
 		});
@@ -236,8 +298,8 @@
 				cameraParams.distance = 1;
 			
 			} else if ($(this).val() === "persp") {
-				cnvParams.camera = new THREE.PerspectiveCamera(45, cnv3DWidth/cnvParams.h, 1, 3000);
-				cnvParams.camera.position.z = 1900;
+				cnvParams.camera = new THREE.PerspectiveCamera(cameraParams.fov, cnv3DWidth/cnvParams.h, 1, 3000);
+				cnvParams.camera.position.z = 1880;
 				cameraParams.distance = cnvParams.camera.position.length();
 			}
 			
@@ -290,58 +352,23 @@
 		
 		$("#selected-shape-opacity-amount").val($( "#selected-shape-opacity-slider" ).slider("value"));
 		$("#selected-shape-opacity-slider").slider("disable");
-		
-		function deleteShape() {
-			if (cnvParams.selectedShape) {
-				let selID = cnvParams.selectedShape.getID();
-				if (shapes.has(selID)) {
-					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
-					
-					let shapesGroup = cnvParams.selectedShape.connectedShapes;					
-					shapesGroup.forEach(function(sh) {
-						sh.detach(selID);
-					});
-					
-//					if (Shape.nextLetterIndex > 0) {
-//                        Shape.nextLetterIndex--;
-//                    }					
-					//shapes.get(selID).points.forEach(function(p) { p.setLetter(""); });
-					
-					shapes.delete(selID);
-					for (let entry of shapes) {
-						entry[1].connectedShapes.clear();
-						geometryEngine.createConnectedShapesGroup(entry[1]);
-					}
-							  
-					if (shapes_3D.has(selID)) {
-						shapes_3D.delete(selID);
-					}
-					
-					let rObj = cnvParams.scene.getObjectByName(selID);
-						cnvParams.scene.remove(rObj);
-						cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
-						renderShapes();
-						cnvParams.selectedShape = 0;
-						disableSelectedShapeAttribControls();
-				}
-			}
-		}
-		
-		$("#selected-shape-delete-btn").click(deleteShape);
+		$("#selected-shape-delete-btn").click(deleteSelectedShape);
 		$("body").keydown(function(e){
 			let letter = String.fromCharCode(e.which);
 			if (e.keyCode === 46) {
-				deleteShape();
+				deleteSelectedShape();
 			}
 		});
 		
 		$("#selected-shape-delete-btn").attr('disabled', 'disabled');
-		
-		
+		enableToolHelpNotesOnHover();
+	}
+	
+	function enableToolHelpNotesOnHover() {
 		let leftOffset = parseFloat($("#top-tools-container").css("margin-left"));
 		let topToolWidth = parseFloat($(".top-tool").outerWidth()) + $(".top-tool").length - 1;
 		let topToolHeight = parseFloat($(".top-tool").outerHeight()) + 5;
+		
 		$(".active-subtool-help").each(function(i, el) {
 			$(el).css({"left": leftOffset, "width": topToolWidth, "top": topToolHeight});
 			leftOffset += topToolWidth;
@@ -362,7 +389,7 @@
 		uiParams.topTools.mouseout(function(e) {
 			$(".active-subtool-help").css({"display": "none"});
 		});
-	}
+    }
 	
 	function initShapes() {
 		shapes 		  = new Map();
@@ -468,46 +495,7 @@
 			});
 		});
 	}
-	
-//	function setCurrentLoopStep(historyData) {
-//		let cnvImg = new Image();
-//		cnvImg.src = historyData[0];			
-//		cnvImg.onload = function() {
-//			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-//			cnvParams.ctx.drawImage(cnvImg, 0, 0);
-//		};
-//		
-//		for (let entry of historyData[1]) {
-//			let shape = shapes.get(entry[0]);
-//			if (shape) {				
-//				for (let i = 0; i < shape.points.length; i++) {
-//					shape.points[i].set(entry[1][i].x, entry[1][i].y);    
-//				}				
-//			}
-//		}
-//		GeometryEngine.prototype.shapes = shapes;
-//		for (let entry of shapes) {
-//            entry[1].connectedShapes.clear();
-//			GeometryEngine.prototype.createConnectedShapesGroup(entry[1]);
-//        }
-//	}
-	
-	//function saveCurrentTransformStep(same) {
-	//	if (same) {
-	//		cnvParams.transformHistory.pop();
-	//	}
-	//	let transformedPoints = new Map(), pointsCopy;
-	//	for (let entry of shapes) {
-	//		pointsCopy = [];
-	//		for (let i = 0; i < entry[1].points.length; i++) {
-	//			pointsCopy.push( entry[1].points[i].copy() );
-	//		}
-	//		transformedPoints.set(entry[0], pointsCopy);
-	//	}
-	//	cnvParams.transformHistory.push( [cnvParams.cnv[0].toDataURL(), transformedPoints] );
-	//	cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
-	//}
-	
+
 	function setupHistory() {
 		uiParams.reloadBtn.click(function() {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
@@ -518,56 +506,24 @@
 			shapes.forEach(function(sh, id) {
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName(id));	
 			});
+			
+			for (let i = cnvParams.scene.children.length - 1; i >= 0; i--){
+				let obj = cnvParams.scene.children[i];
+				if (obj.name !== "coordSystem") {
+					cnvParams.scene.remove(obj);    
+                }
+			}
+			
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 			shapes.clear();
 			shapes_3D.clear();
 			deletedShapes.clear();
-			//cnvParams.transformHistory = [];
 			Line.count = Ray.count = Segment.count = Vector.count = Polygon.count = 
 			Triangle.count = RegularPolygon.count = Circle.count = Point.count = Text2d.count = 0;
 			Shape.nextLetterIndex = 0;
 			Shape.letterIndexMark = 0;
-			$(".active-subtool-help").css({"display": "none"});
+			$(".active-subtool-help").css({"display": "none"});			
 		});
-//		uiParams.undoBtn.click(function() {
-//			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-//			if (cnvParams.historyIndex >= cnvParams.transformHistory.length) {
-//                cnvParams.historyIndex = cnvParams.transformHistory.length - 2;
-//            }
-//			if (cnvParams.historyIndex >= 0) {
-//				let historyData = cnvParams.transformHistory[cnvParams.historyIndex--];
-//				setCurrentLoopStep(historyData);	
-//            } else {
-//				//let lastShapeID = shapes.getLastKey();
-//				//if (lastShapeID) {
-//				//	deletedShapes.set(lastShapeID, shapes.get(lastShapeID));					
-//				//	//fix detaching
-//				//	//for (let entry of shapes.get(lastShapeID).connectedShapes) {
-//				//	//	entry[1].detach(lastShapeID);						
-//				//	//}
-//				//	shapes.delete(lastShapeID);
-//				//}
-//			}
-//			renderShapes();
-//		});
-//		
-//		uiParams.redoBtn.click(function() {
-//			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
-//			if (cnvParams.historyIndex < 0) {
-//                cnvParams.historyIndex = 1;
-//            }			
-//			if (cnvParams.historyIndex < cnvParams.transformHistory.length) {
-//				let historyData = cnvParams.transformHistory[cnvParams.historyIndex++];				
-//				setCurrentLoopStep(historyData);  
-//            } else {
-//				//let lastShapeID = deletedShapes.getLastKey();
-//				//if (lastShapeID) {
-//				//	shapes.set( lastShapeID, deletedShapes.get(lastShapeID) );
-//				//	deletedShapes.delete(lastShapeID);
-//				//}
-//            }
-//			renderShapes();
-//		});
 	}
 	
 	function emphasizeShapes(e) {
@@ -584,7 +540,8 @@
 			shapeParts,
 			mdown = new Vec2(),
 			mmove = new Vec2(),
-			shapeConstructor = new shapeConstructorFactory(cnvParams, shapes)
+			cnv3DWidth = cnvParams.bothCanvasesWidth - cnvParams.w - 5,
+			shapeConstructor = new shapeConstructorFactory(cnvParams, shapes, shapes_3D, cameraParams, updateCamera)
 				.getConstructor(toolName, subToolName, mdown, mmove);		
 		
 		if (!shapeConstructor) {
@@ -593,8 +550,9 @@
 		}
 		
 		cnvParams.cnv.mousedown(function(e) {
+			if (toolName === "_3DShape" || toolName === "surfaces") return;
+            
 			$(".active-subtool-help").css({"display": "none"});
-			cnvParams.transformHistory = [];
 			uiParams.subTools.css({"visibility" : "hidden"});
 			e.stopPropagation();
 			mdown.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
@@ -646,6 +604,69 @@
 			}
 			shapeConstructor.constructionNextStep();
 		});
+		
+		//	3d shapes constructing
+		if (cnvParams._3DviewEnabled) {
+			setUP3DView(cnvParams.bothCanvasesWidth - cnvParams.w - 5);
+		}
+		
+		cnvParams.cnv3D.mousedown(onCnv3DMdown);
+		$("#canvas2DOverlay").mousedown(onCnv3DMdown);
+		
+		function onCnv3DMdown(e) {
+			if (toolName !== "_3DShape" && toolName !== "surfaces") return;
+			$(".active-subtool-help").css({"display": "none"});
+			uiParams.subTools.css({"visibility" : "hidden"});
+			e.stopPropagation();
+
+			//	assuming that origin located at the screen center
+				//mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,	
+				//	-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));					
+			
+			mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5,
+					 (e.clientY - cnvParams.cnvOffsetY));
+			
+			shapeConstructor.initConstruction();			
+			
+			if (!shapeConstructor.constructionReady()) {
+				return false;
+			}
+			
+			if (shapeConstructor.constructionStarted()) {
+				cnvParams.cnv3D.mousemove(onCnv3DMmove);
+				$("#canvas2DOverlay").mousemove(onCnv3DMmove);
+			}
+			
+			if (shapeConstructor.constructionEnding()) {
+				cnvParams.cnv3D.off("mousemove");
+				$("#canvas2DOverlay").off("mousemove");
+				
+				shape = shapeConstructor.endConstruction();
+				//shapes_3D.set(shape)
+				
+				if (!shape) {
+					log("shape wasn't created");
+					return;
+				}				
+				updateCamera();				
+				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
+				return;
+			}
+			
+			shapeConstructor.constructionNextStep(); 
+        }
+		
+		function onCnv3DMmove(e) {
+			//mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,	
+			//	-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));		
+			
+			mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5,
+					 (e.clientY - cnvParams.cnvOffsetY));			
+			
+			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);					
+			shapeParts = shapeConstructor.processConstruction(e);
+			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+        }
 	}
 	
 	function transformLoop(e, toolName) {
@@ -656,6 +677,10 @@
 			connectedShapesGroup = 0,
 			pointShape,
 			selShape;
+			
+		if (cnvParams._3DviewEnabled) {
+			setUP3DView(cnvParams.bothCanvasesWidth - cnvParams.w - 5);
+		}
 			
 		cnvParams.cnv.mousedown(function(e) {
 			$(".active-subtool-help").css({"display": "none"});
@@ -693,7 +718,6 @@
 			}
 			
 			if (!$.isEmptyObject(transformProps)) {
-				//saveCurrentTransformStep(true);
 				cnvParams.cnv.css({"cursor": "pointer"});
 				cnvParams.cnv.mousemove(function(e) {
 					mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
@@ -708,7 +732,6 @@
 					cnvParams.cnv.off('mousemove');
 					cnvParams.cnv.off('mouseup');
 					cnvParams.cnv.mousemove(emphasizeShapes);
-					//saveCurrentTransformStep();
 					useOldTransformProps = 0;					
 					if (selShape && connectedShapesGroup && connectedShapesGroup.size > 0) {
 						for (let i = 0; i < selShape.points.length; i++) {
