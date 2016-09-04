@@ -733,8 +733,10 @@
         cnvOffsetY = cnvParams.cnvOffsetY,
         mouse3D = new THREE.Vector3(),
         mdown3D = new THREE.Vector3(),
+        helpCenterMesh = new THREE.Mesh(new THREE.SphereGeometry(10, 64, 64), new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: 0.85})),
         mat4 = new THREE.Matrix4(),
         mat41 = new THREE.Matrix4();
+        //cnvParams.scene.add(helpCenterMesh);
         
         return {
             constructionStarted: function() {
@@ -853,18 +855,15 @@
                 return true;
             },
             processConstruction: function(e) {
-                switch (subtoolName) {
-                    case "sphererad":               
-                        break;
-                    case "box":                  
-                        break;
-                    case "cylinder":
-                        break;
-                }
-                
-                //mouse3D = toWorldSpace(mmove, cnvParams.w, cnvParams.h, cnvParams.camera, mat4);    //  wroung way                
+                //switch (subtoolName) {
+                //    case "sphererad":               
+                //        break;
+                //    case "box":                  
+                //        break;
+                //    case "cylinder":
+                //        break;
+                //}            
                 //helpCenterMesh.position.set(mouse3D.x, 0, mouse3D.z);                
-                //radius = helpCenterMesh.position.clone().sub(mdown3D).length();                
                 return shapeParts;
             },
             constructionEnding: function() {
@@ -906,14 +905,12 @@
                             cylGeom.vertices.forEach(function(vert) {
                                 container.add(createPoint3D(8, vert.clone()));    
                             });
-                        }                        
+                        }
                     break;
                 }
-                container.add(mesh);              
+                container.add(mesh);
                 cnvParams.scene.add(container);
-                //container.name = subtoolName;
-                shapes_3D.set(subtoolName + container.uuid, container);
-                //log(cnvParams.scene.children);
+                shapes_3D.set(container.uuid, container);
                 cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
                 
                 shapeParts = [];
@@ -930,8 +927,8 @@
     function getSurfacesConstructor(subtoolName, cnvParams, mdown, mmove, shapes, shapes_3D) {
         let renderParams = {
             strokeStyle: "#000",
-            fillColor: "#569",
-            lineWidth: 1
+            fillColor:   "#569",
+            lineWidth:    1
         },
         geometryEngine = new GeometryEngine(),
         mesh = 0,
@@ -943,35 +940,52 @@
         cnvOffsetY = cnvParams.cnvOffsetY,
         mouse3D = new THREE.Vector3(),
         mdown3D = new THREE.Vector3();
+        //let objects = [];
+        //for (let i = 0; i < cnvParams.scene.children.length; i++) {
+        //    if (cnvParams.scene.children[i].name !== "coordSystem" && cnvParams.scene.children[i].name !== "light1") {
+        //        cnvParams.scene.children[i].children.forEach(function(mesh) {
+        //            objects.push(mesh);     //  raycaster.intersects(objects) objects must be an array of meshes (not Object3D's)
+        //        });
+        //    }
+        //}
         
+        let surfaceMesh, surfaceGeom, surfaceMat;
+        surfaceGeom = new THREE.Geometry();
+        surfaceMat = new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: 0x0000ee});
+
         return {
             constructionStarted: function() {
-                return clicks == 0;
+                return clicks === 0;
             },				
             initConstruction: function() {
                 toClipSpace(mdown, cnvParams.w, cnvParams.h, mdown3D);
                 let objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
-                //log(objs)
+                
+                //objs.forEach(function(intersect) {
+                //    if (intersect.object.name == "point3D") {   
+                //        surfaceGeom.vertices.push(new THREE.Vector3(intersect.object.position.x, intersect.object.position.y, intersect.object.position.z));
+                //        surfaceGeom.faces.push(
+                //            new THREE.Face3(2,1,0)     //  use vertices of rank 2,1,0
+                //            //new THREE.Face3(3,1,2)      //  vertices[3],1,2...
+                //        );
+                //    }
+                //});
             },
             constructionReady: function() {
-                
-                
                 return true;
             },
             processConstruction: function(e) {
-                               
+                
                 return shapeParts;
             },
             constructionEnding: function() {
-                return true;
-            },				
+                return clicks === 2;
+            },
             endConstruction: function() {
-                           
-                //container.add(mesh);              
-                //cnvParams.scene.add(container);
-                //shapes_3D.set(subtoolName + container.uuid, container);                
-                //cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
+                surfaceMesh = new THREE.Mesh(surfaceGeom, surfaceMat);
+                //cnvParams.scene.add(surfaceMesh);
                 
+                cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
                 shapeParts = [];
                 clicks = 0;
                 return mesh;
