@@ -722,6 +722,7 @@
         },
         geometryEngine = new GeometryEngine(),
         mesh = 0,
+        point3DSize = 10,
         shapeParts = [],
         meshPosition = new THREE.Vector3(),
         radius = 0, numVertices = 3,
@@ -879,15 +880,15 @@
                         mesh = new THREE.Mesh(sphereGeom, sphereMat);
                         mesh.geometry.computeBoundingSphere();
                         let center = mesh.geometry.boundingSphere.center;
-                        container.add(createPoint3D(8, center.clone()));
+                        container.add(createPoint3D(point3DSize, center.clone()));
                     break;
                     case "box":
                         let boxGeom = new THREE.BoxGeometry(+boxSizes[0], +boxSizes[1], +boxSizes[2]);
                         let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: 0.85});
                         mesh = new THREE.Mesh(boxGeom, boxMat);
                         boxGeom.vertices.forEach(function(vert) {
-                            container.add(createPoint3D(8, vert.clone()));    
-                        });                        
+                            container.add(createPoint3D(point3DSize, vert.clone()));
+                        });
                     break;
                     case "cylinder": case "cone": case "prism":
                         let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, subtoolName == "prism" ? numVertices : 32, subtoolName == "prism" ? numVertices : 32);
@@ -897,13 +898,13 @@
                         let centerCyl = mesh.geometry.boundingSphere.center;
                         
                         if (subtoolName === "cylinder" || subtoolName === "cone") {
-                            container.add(createPoint3D(8, new THREE.Vector3(centerCyl.x, centerCyl.y - cylHeight * 0.5, centerCyl.z)));
-                            container.add(createPoint3D(8, new THREE.Vector3(centerCyl.x, centerCyl.y + cylHeight * 0.5, centerCyl.z)));
+                            container.add(createPoint3D(point3DSize, new THREE.Vector3(centerCyl.x, centerCyl.y - cylHeight * 0.5, centerCyl.z)));
+                            container.add(createPoint3D(point3DSize, new THREE.Vector3(centerCyl.x, centerCyl.y + cylHeight * 0.5, centerCyl.z)));
                         }
                         
                         if (subtoolName === "prism") {
                             cylGeom.vertices.forEach(function(vert) {
-                                container.add(createPoint3D(8, vert.clone()));    
+                                container.add(createPoint3D(point3DSize, vert.clone()));    
                             });
                         }
                     break;
@@ -935,11 +936,48 @@
         shapeParts = [],
         meshPosition = new THREE.Vector3(),
         clicks = 0,
+        objs = [],
         container = new THREE.Object3D(),
         cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
         cnvOffsetY = cnvParams.cnvOffsetY,
         mouse3D = new THREE.Vector3(),
         mdown3D = new THREE.Vector3();
+        
+        function planeThrou3Points(v1, v2, v3, scene) {
+            var planeGeom, planeMat, faces, planeMesh, v4;
+            //var a = v3.clone().sub(v2);
+            //var b = v2.clone().sub(v1);
+            //var c = a.clone().add(b);
+            
+            planeGeom = new THREE.Geometry();
+            planeGeom.vertices.push(v1, v2, v3);  
+            planeGeom.faces.push(new THREE.Face3(0, 1, 2));
+            
+            planeGeom.computeFaceNormals();
+            planeGeom.computeVertexNormals();
+            
+            planeMat = new THREE.MeshBasicMaterial({color: 0x556677, side: THREE.DoubleSide});
+            scene.add( new THREE.Mesh(planeGeom, planeMat) )
+                
+            planeGeom = new THREE.PlaneBufferGeometry(700, 700);
+            planeMat = new THREE.MeshBasicMaterial({color: 0x556677, side: THREE.DoubleSide, transparent: true, opacity: 0.5});
+            planeMesh = new THREE.Mesh(planeGeom, planeMat);            
+            //let euler = new THREE.Euler();
+            
+            
+            scene.add(planeMesh);
+        }
+        
+        planeThrou3Points(
+            new THREE.Vector3(200, 0, 0),
+            new THREE.Vector3(0, 0, -500),
+            new THREE.Vector3(0, 200, 0),
+            
+            cnvParams.scene
+        );
+        
+        cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+        
         //let objects = [];
         //for (let i = 0; i < cnvParams.scene.children.length; i++) {
         //    if (cnvParams.scene.children[i].name !== "coordSystem" && cnvParams.scene.children[i].name !== "light1") {
@@ -949,9 +987,9 @@
         //    }
         //}
         
-        let surfaceMesh, surfaceGeom, surfaceMat;
-        surfaceGeom = new THREE.Geometry();
-        surfaceMat = new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: 0x0000ee});
+        //let surfaceMesh, surfaceGeom, surfaceMat;
+        //surfaceGeom = new THREE.Geometry();
+        //surfaceMat = new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: 0x0000ee});
 
         return {
             constructionStarted: function() {
@@ -959,7 +997,10 @@
             },				
             initConstruction: function() {
                 toClipSpace(mdown, cnvParams.w, cnvParams.h, mdown3D);
-                let objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
+                objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
+                objs.forEach(function(intersect) {
+                    log(intersect.object);
+                });
                 
                 //objs.forEach(function(intersect) {
                 //    if (intersect.object.name == "point3D") {   
@@ -982,10 +1023,10 @@
                 return clicks === 2;
             },
             endConstruction: function() {
-                surfaceMesh = new THREE.Mesh(surfaceGeom, surfaceMat);
+                //surfaceMesh = new THREE.Mesh(surfaceGeom, surfaceMat);
                 //cnvParams.scene.add(surfaceMesh);
                 
-                cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+                //cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
                 shapeParts = [];
                 clicks = 0;
                 return mesh;
