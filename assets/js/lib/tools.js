@@ -932,9 +932,9 @@
             lineWidth:    1
         },
         geometryEngine = new GeometryEngine(),
+        meshPosition = new THREE.Vector3(),
         mesh = 0,
         shapeParts = [],
-        meshPosition = new THREE.Vector3(),
         clicks = 0,
         objs = [],
         container = new THREE.Object3D(),
@@ -944,34 +944,37 @@
         mdown3D = new THREE.Vector3();
         
         function planeThrou3Points(v1, v2, v3, scene) {
-            var planeGeom, planeMat, faces, planeMesh, v4;
-            //var a = v3.clone().sub(v2);
-            //var b = v2.clone().sub(v1);
-            //var c = a.clone().add(b);
+            var planeGeom, planeMat, planeMesh;
             
             planeGeom = new THREE.Geometry();
-            planeGeom.vertices.push(v1, v2, v3);  
-            planeGeom.faces.push(new THREE.Face3(0, 1, 2));
-            
+            planeGeom.vertices.push(v1, v2, v3);
+            var face = new THREE.Face3(0, 1, 2);
+            planeGeom.faces.push(face);            
             planeGeom.computeFaceNormals();
             planeGeom.computeVertexNormals();
+            planeMat = new THREE.MeshBasicMaterial({color: 0x989898, side: THREE.DoubleSide});
+            planeMesh = new THREE.Mesh(planeGeom, planeMat);
+            scene.add(planeMesh);
             
-            planeMat = new THREE.MeshBasicMaterial({color: 0x556677, side: THREE.DoubleSide});
-            scene.add( new THREE.Mesh(planeGeom, planeMat) )
-                
             planeGeom = new THREE.PlaneBufferGeometry(700, 700);
-            planeMat = new THREE.MeshBasicMaterial({color: 0x556677, side: THREE.DoubleSide, transparent: true, opacity: 0.5});
+            planeMat = new THREE.MeshBasicMaterial({color: 0x5d46456, side: THREE.DoubleSide, transparent: true, opacity: 0.5});
             planeMesh = new THREE.Mesh(planeGeom, planeMat);            
-            //let euler = new THREE.Euler();
             
-            
+            var orthoPlaneNormal = new THREE.Vector3(0, 0, 1);            
+            var axis = face.normal.clone().cross(orthoPlaneNormal);
+            var angle = Math.acos( face.normal.dot( orthoPlaneNormal ) );             
+            var rotationWorldMatrix = new THREE.Matrix4();
+            rotationWorldMatrix.makeRotationAxis(axis.normalize(), -angle);
+            planeMesh.matrix.multiply(rotationWorldMatrix);
+            planeMesh.rotation.setFromRotationMatrix(planeMesh.matrix);
+
             scene.add(planeMesh);
         }
         
         planeThrou3Points(
-            new THREE.Vector3(200, 0, 0),
-            new THREE.Vector3(0, 0, -500),
-            new THREE.Vector3(0, 200, 0),
+            new THREE.Vector3(200, 12, 0),
+            new THREE.Vector3(150, 0, -450),
+            new THREE.Vector3(200, 200, 134),
             
             cnvParams.scene
         );
