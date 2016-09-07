@@ -28,6 +28,7 @@
         toWorldSpace = Global.math.toWorldSpace,
         toClipSpace = Global.math.toClipSpace,
         getPickedObjects3D =  Global.math.getPickedObjects3D,
+        planeThrou3Points = Global.math.planeThrou3Points,
         GeometryEngine = Global.engine.GeometryEngine;
     
     
@@ -721,6 +722,7 @@
             lineWidth: 1
         },
         geometryEngine = new GeometryEngine(),
+        objectsOpacity = 0.6,
         mesh = 0,
         point3DSize = 10,
         shapeParts = [],
@@ -876,7 +878,7 @@
                 switch (subtoolName) {
                     case "sphererad":
                         let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
-                        let sphereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: 0.85});
+                        let sphereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: objectsOpacity});
                         mesh = new THREE.Mesh(sphereGeom, sphereMat);
                         mesh.geometry.computeBoundingSphere();
                         let center = mesh.geometry.boundingSphere.center;
@@ -884,7 +886,7 @@
                     break;
                     case "box":
                         let boxGeom = new THREE.BoxGeometry(+boxSizes[0], +boxSizes[1], +boxSizes[2]);
-                        let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: 0.85});
+                        let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: objectsOpacity});
                         mesh = new THREE.Mesh(boxGeom, boxMat);
                         boxGeom.vertices.forEach(function(vert) {
                             container.add(createPoint3D(point3DSize, vert.clone()));
@@ -892,7 +894,7 @@
                     break;
                     case "cylinder": case "cone": case "prism":
                         let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, subtoolName == "prism" ? numVertices : 32, subtoolName == "prism" ? numVertices : 32);
-                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : subtoolName == "prism" ? 0x123456 : 0x554433, transparent: true, opacity: 0.85});
+                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : subtoolName == "prism" ? 0x123456 : 0x554433, transparent: true, opacity: objectsOpacity});
                         mesh = new THREE.Mesh(cylGeom, cylMat);
                         mesh.geometry.computeBoundingSphere();
                         let centerCyl = mesh.geometry.boundingSphere.center;
@@ -909,6 +911,7 @@
                         }
                     break;
                 }
+                log(mesh)
                 container.add(mesh);
                 cnvParams.scene.add(container);
                 shapes_3D.set(container.uuid, container);
@@ -933,8 +936,8 @@
         },
         geometryEngine = new GeometryEngine(),
         meshPosition = new THREE.Vector3(),
-        mesh = 0,
-        shapeParts = [],
+        surfaceMesh = 0,
+        shapeParts = [], planePoints = [],
         clicks = 0,
         objs = [],
         container = new THREE.Object3D(),
@@ -942,42 +945,6 @@
         cnvOffsetY = cnvParams.cnvOffsetY,
         mouse3D = new THREE.Vector3(),
         mdown3D = new THREE.Vector3();
-        
-        function planeThrou3Points(v1, v2, v3, scene) {
-            var planeGeom, planeMat, planeMesh;
-            
-            planeGeom = new THREE.Geometry();
-            planeGeom.vertices.push(v1, v2, v3);
-            var face = new THREE.Face3(0, 1, 2);
-            planeGeom.faces.push(face);            
-            planeGeom.computeFaceNormals();
-            planeGeom.computeVertexNormals();
-            planeMat = new THREE.MeshBasicMaterial({color: 0x989898, side: THREE.DoubleSide});
-            planeMesh = new THREE.Mesh(planeGeom, planeMat);
-            scene.add(planeMesh);
-            
-            planeGeom = new THREE.PlaneBufferGeometry(700, 700);
-            planeMat = new THREE.MeshBasicMaterial({color: 0x5d46456, side: THREE.DoubleSide, transparent: true, opacity: 0.5});
-            planeMesh = new THREE.Mesh(planeGeom, planeMat);            
-            
-            var orthoPlaneNormal = new THREE.Vector3(0, 0, 1);            
-            var axis = face.normal.clone().cross(orthoPlaneNormal);
-            var angle = Math.acos( face.normal.dot( orthoPlaneNormal ) );             
-            var rotationWorldMatrix = new THREE.Matrix4();
-            rotationWorldMatrix.makeRotationAxis(axis.normalize(), -angle);
-            planeMesh.matrix.multiply(rotationWorldMatrix);
-            planeMesh.rotation.setFromRotationMatrix(planeMesh.matrix);
-
-            scene.add(planeMesh);
-        }
-        
-        planeThrou3Points(
-            new THREE.Vector3(200, 12, 0),
-            new THREE.Vector3(150, 0, -450),
-            new THREE.Vector3(200, 200, 134),
-            
-            cnvParams.scene
-        );
         
         cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
         
@@ -988,32 +955,21 @@
         //            objects.push(mesh);     //  raycaster.intersects(objects) objects must be an array of meshes (not Object3D's)
         //        });
         //    }
-        //}
+        //}        
         
-        //let surfaceMesh, surfaceGeom, surfaceMat;
-        //surfaceGeom = new THREE.Geometry();
-        //surfaceMat = new THREE.MeshLambertMaterial({side: THREE.DoubleSide, color: 0x0000ee});
-
         return {
             constructionStarted: function() {
                 return clicks === 0;
-            },				
+            },
             initConstruction: function() {
                 toClipSpace(mdown, cnvParams.w, cnvParams.h, mdown3D);
                 objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
-                objs.forEach(function(intersect) {
-                    log(intersect.object);
-                });
                 
-                //objs.forEach(function(intersect) {
-                //    if (intersect.object.name == "point3D") {   
-                //        surfaceGeom.vertices.push(new THREE.Vector3(intersect.object.position.x, intersect.object.position.y, intersect.object.position.z));
-                //        surfaceGeom.faces.push(
-                //            new THREE.Face3(2,1,0)     //  use vertices of rank 2,1,0
-                //            //new THREE.Face3(3,1,2)      //  vertices[3],1,2...
-                //        );
-                //    }
-                //});
+                objs.forEach(function(intersect) {
+                    if (intersect.object.name === "point3D") {
+                        planePoints.push(intersect.object.getWorldPosition()); 
+                    }
+                });
             },
             constructionReady: function() {
                 return true;
@@ -1026,13 +982,19 @@
                 return clicks === 2;
             },
             endConstruction: function() {
-                //surfaceMesh = new THREE.Mesh(surfaceGeom, surfaceMat);
-                //cnvParams.scene.add(surfaceMesh);
+                if (planePoints.length === 3) {
+                    log(planePoints)
+                    surfaceMesh = planeThrou3Points(planePoints[0], planePoints[1], planePoints[2]);
+                    cnvParams.scene.add(surfaceMesh);                    
+                    cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);        
+                } else {
+                    alert("plane must be defined by 3 points, num points = " + planePoints.length);
+                }
                 
-                //cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+                planePoints = [];
                 shapeParts = [];
                 clicks = 0;
-                return mesh;
+                return surfaceMesh;
             },
             constructionNextStep: function() {
                 clicks++;
