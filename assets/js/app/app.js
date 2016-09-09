@@ -100,7 +100,8 @@
 		$("#render-canvases").append(cnvParams.renderer.domElement);
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
-		cnvParams.renderer.context.disable(cnvParams.renderer.context.DEPTH_TEST);
+		//cnvParams.renderer.sortObjects = false
+		//cnvParams.renderer.context.disable(cnvParams.renderer.context.DEPTH_TEST);
 		updateCamera = function() {
 			if (!cnvParams.camera) {
                 log("cnvParams.camera is falsy");
@@ -166,8 +167,9 @@
 			cnvParams.scene.add(coordSystem);   
         }
 		
+		//depthWrite: false
 		let xzPlaneGeom = new THREE.PlaneBufferGeometry(2*cnv3DWidth - 100, 2*cnv3DWidth - 100);
-		let xzPlaneMat = new THREE.MeshLambertMaterial({color: 0x11ffff, side: THREE.DoubleSide, transparent: true, opacity: 0.4});
+		let xzPlaneMat = new THREE.MeshLambertMaterial({color: 0x11ffff, side: THREE.DoubleSide, transparent: true, opacity: 0.4, depthTest: false});
 		let xzPlaneMesh = new THREE.Mesh(xzPlaneGeom, xzPlaneMat);
 		xzPlaneMesh.name = "xzPlane";
 		if (cnvParams.scene.getObjectByName("xzPlane") === undefined) {
@@ -180,7 +182,7 @@
 		
 		prepare3DShapes();
 		updateCamera();
-		cameraParams.light1.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
+		//cameraParams.light1.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
 		cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);			//	initial rendering		
 		create3DInteractivities();
     }
@@ -614,7 +616,7 @@
 				
 				Shape.prototype.cnv2DOverlayContext.font = "15px Arial";
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
-				
+				//log(cnvParams.scene.children)
 				renderShapes();
 				return;
 			}

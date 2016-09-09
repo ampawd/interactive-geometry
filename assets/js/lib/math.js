@@ -527,7 +527,7 @@
         var center = v1.clone().add(v2).add(v3).multiplyScalar(1 / 3);
         
         planeGeom = new THREE.PlaneBufferGeometry(1500, 1500);
-        planeMat = new THREE.MeshBasicMaterial({color: 0x9999a, side: THREE.DoubleSide, transparent: true, opacity: 0.3});
+        planeMat = new THREE.MeshBasicMaterial({color: 0x9999a, side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthTest: false});
         planeMesh = new THREE.Mesh(planeGeom, planeMat);            
         
         var orthoPlaneNormal = new THREE.Vector3(0, 0, 1);            

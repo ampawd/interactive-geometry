@@ -1,7 +1,7 @@
 "use strict";
 
 // TODO:
-// 1. 
+// 1. Picking a point on a 3D object when constructing new 3D objects and plane surface
 
 ;(function($, THREE, Global) {
     
@@ -878,7 +878,7 @@
                 switch (subtoolName) {
                     case "sphererad":
                         let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
-                        let sphereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: objectsOpacity});
+                        let sphereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: objectsOpacity, depthTest: false});
                         mesh = new THREE.Mesh(sphereGeom, sphereMat);
                         mesh.geometry.computeBoundingSphere();
                         let center = mesh.geometry.boundingSphere.center;
@@ -886,7 +886,7 @@
                     break;
                     case "box":
                         let boxGeom = new THREE.BoxGeometry(+boxSizes[0], +boxSizes[1], +boxSizes[2]);
-                        let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: objectsOpacity});
+                        let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: objectsOpacity, depthTest: false});
                         mesh = new THREE.Mesh(boxGeom, boxMat);
                         boxGeom.vertices.forEach(function(vert) {
                             container.add(createPoint3D(point3DSize, vert.clone()));
@@ -894,7 +894,7 @@
                     break;
                     case "cylinder": case "cone": case "prism":
                         let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, subtoolName == "prism" ? numVertices : 32, subtoolName == "prism" ? numVertices : 32);
-                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : subtoolName == "prism" ? 0x123456 : 0x554433, transparent: true, opacity: objectsOpacity});
+                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : subtoolName == "prism" ? 0x123456 : 0x554433, transparent: true, opacity: objectsOpacity, depthTest: false});
                         mesh = new THREE.Mesh(cylGeom, cylMat);
                         mesh.geometry.computeBoundingSphere();
                         let centerCyl = mesh.geometry.boundingSphere.center;
@@ -911,7 +911,7 @@
                         }
                     break;
                 }
-                log(mesh)
+                
                 container.add(mesh);
                 cnvParams.scene.add(container);
                 shapes_3D.set(container.uuid, container);
@@ -950,13 +950,12 @@
         
         //let objects = [];
         //for (let i = 0; i < cnvParams.scene.children.length; i++) {
-        //    if (cnvParams.scene.children[i].name !== "coordSystem" && cnvParams.scene.children[i].name !== "light1") {
+        //    if (cnvParams.scene.children[i].name !== "coordSystem" && cnvParams.scene.children[i].name !== "light1" && cnvParams.scene.children[i].name !== "xzPlane") {
         //        cnvParams.scene.children[i].children.forEach(function(mesh) {
-        //            objects.push(mesh);     //  raycaster.intersects(objects) objects must be an array of meshes (not Object3D's)
+        //            objects.push(mesh);         //  raycaster.intersects(objects) objects must be an array of meshes (not Object3D's)
         //        });
         //    }
-        //}        
-        
+        //}
         return {
             constructionStarted: function() {
                 return clicks === 0;
@@ -966,7 +965,8 @@
                 objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
                 
                 objs.forEach(function(intersect) {
-                    if (intersect.object.name === "point3D") {
+                    log(intersect.object)
+                    if (intersect.object.name.indexOf("point") > -1) {
                         planePoints.push(intersect.object.getWorldPosition()); 
                     }
                 });
@@ -983,12 +983,12 @@
             },
             endConstruction: function() {
                 if (planePoints.length === 3) {
-                    log(planePoints)
+                    //log(planePoints)
                     surfaceMesh = planeThrou3Points(planePoints[0], planePoints[1], planePoints[2]);
                     cnvParams.scene.add(surfaceMesh);                    
-                    cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);        
+                    cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);     
                 } else {
-                    alert("plane must be defined by 3 points, num points = " + planePoints.length);
+                    alert("plane must be defined by 3 points, you have selected only = " + planePoints.length);
                 }
                 
                 planePoints = [];
