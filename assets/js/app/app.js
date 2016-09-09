@@ -100,6 +100,7 @@
 		$("#render-canvases").append(cnvParams.renderer.domElement);
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
+		cnvParams.renderer.context.disable(cnvParams.renderer.context.DEPTH_TEST);
 		updateCamera = function() {
 			if (!cnvParams.camera) {
                 log("cnvParams.camera is falsy");
@@ -165,6 +166,15 @@
 			cnvParams.scene.add(coordSystem);   
         }
 		
+		let xzPlaneGeom = new THREE.PlaneBufferGeometry(2*cnv3DWidth - 100, 2*cnv3DWidth - 100);
+		let xzPlaneMat = new THREE.MeshLambertMaterial({color: 0x11ffff, side: THREE.DoubleSide, transparent: true, opacity: 0.4});
+		let xzPlaneMesh = new THREE.Mesh(xzPlaneGeom, xzPlaneMat);
+		xzPlaneMesh.name = "xzPlane";
+		if (cnvParams.scene.getObjectByName("xzPlane") === undefined) {
+			xzPlaneMesh.rotation.x = Math.PI / 2;
+			cnvParams.scene.add(xzPlaneMesh);   
+        }
+		
 		Shape.prototype.cnvW = cnv3DWidth;
 		Shape.prototype.camera = cnvParams.camera;
 		
@@ -209,7 +219,7 @@
 					}
 				});
 				
-				light && light.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
+				//light && light.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
 				cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);
 			}
 			let onmup = function(e) {
@@ -282,6 +292,7 @@
 				uiParams.surfaceShapesTools.attr("style", "display: none !important");
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
 				cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
+				cnvParams.scene.remove(cnvParams.scene.getObjectByName("xzPlane"));
 				cnvParams._3DviewEnabled = false;
 				cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent) / 100 );
 				cnvParams.w = cnvParams.cnv.width();				
@@ -513,8 +524,8 @@
 			
 			for (let i = cnvParams.scene.children.length - 1; i >= 0; i--){
 				let obj = cnvParams.scene.children[i];
-				if (obj.name !== "coordSystem") {
-					cnvParams.scene.remove(obj);    
+				if (obj.name !== "coordSystem" && obj.name !== "xzPlane" && obj.name !== "light1") {
+					cnvParams.scene.remove(obj);
                 }
 			}
 			
@@ -526,7 +537,7 @@
 			Triangle.count = RegularPolygon.count = Circle.count = Point.count = Text2d.count = 0;
 			Shape.nextLetterIndex = 0;
 			Shape.letterIndexMark = 0;
-			$(".active-subtool-help").css({"display": "none"});			
+			$(".active-subtool-help").css({"display": "none"});
 		});
 	}
 	
@@ -625,8 +636,8 @@
 			e.stopPropagation();
 
 			//	assuming that origin located at the screen center
-				//mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,	
-				//	-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));					
+			//	mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - cnv3DWidth * 0.5 - 5,	
+			//			-(e.clientY - cnvParams.cnvOffsetY - cnvParams.h * 0.5));					
 			
 			mdown.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5,
 					 (e.clientY - cnvParams.cnvOffsetY));
