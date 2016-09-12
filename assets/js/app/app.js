@@ -1,7 +1,8 @@
 "use strict";
 
 // TODO:
-// 1.
+//	1. Show lines on objects
+//	2. Find intersection points of object and surface
 
 ;(function($, THREE, Global) {
 	

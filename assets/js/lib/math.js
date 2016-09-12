@@ -527,7 +527,7 @@
         var center = v1.clone().add(v2).add(v3).multiplyScalar(1 / 3);
         
         planeGeom = new THREE.PlaneBufferGeometry(1500, 1500);
-        planeMat = new THREE.MeshBasicMaterial({color: 0x9999a, side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthTest: false});
+        planeMat = new THREE.MeshPhongMaterial({color: 0x9999a, side: THREE.DoubleSide, transparent: true, opacity: 0.4, depthTest: false});
         planeMesh = new THREE.Mesh(planeGeom, planeMat);            
         
         var orthoPlaneNormal = new THREE.Vector3(0, 0, 1);            
@@ -553,6 +553,22 @@
         return planeMesh;
     }
     
+    function segment3D(v1, v2) {
+        let segmentGeometry = new THREE.Geometry();
+        segmentGeometry.vertices.push(v1, v2);
+        return new THREE.Line(segmentGeometry, new THREE.LineBasicMaterial( {color: 0x000000 } ));
+    }
+    
+    function circle3D(radius, center) {
+        let circleGeometry = new THREE.CircleGeometry(radius, 64);
+        circleGeometry.vertices.shift();    //  remove center
+        let mat = new THREE.LineBasicMaterial({color: 0x000000 });
+        let circle = new THREE.Line(circleGeometry, mat);
+        circle.position.set(center.x, center.y, center.z);
+        circle.rotation.set(Math.PI/2, 0, 0);
+        return circle;
+    }
+    
     Global.math = Global.math || {
         Vec2: Vec2,
         Vec3: Vec3,
@@ -571,7 +587,9 @@
         toWorldSpace: toWorldSpace,
         toClipSpace: toClipSpace,
         getPickedObjects3D: getPickedObjects3D,
-        planeThrou3Points: planeThrou3Points
+        planeThrou3Points: planeThrou3Points,
+        segment3D: segment3D,
+        circle3D: circle3D
     };
 
 })(jQuery, THREE, DSSGeometry);
