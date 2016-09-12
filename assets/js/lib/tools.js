@@ -892,7 +892,8 @@
                         let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: objectsOpacity});
                         mesh = new THREE.Mesh(boxGeom, boxMat);
                         helper = new THREE.EdgesHelper( mesh, 0x000000 );
-                        container.add( helper );
+                        helper.position.set(meshPosition.x, meshPosition.y, meshPosition.z);
+                        cnvParams.scene.add( helper );  //  only for box
                         
                         boxGeom.vertices.forEach(function(vert) {
                             container.add(createPoint3D(point3DSize, vert.clone()));
