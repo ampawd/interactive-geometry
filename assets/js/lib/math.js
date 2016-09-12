@@ -500,6 +500,59 @@
         return Math.acos(dot / (alen*blen));
     }
     
+    function toWorldSpace(point2D, w, h, camera, mat4) {
+        let x = 2 * point2D.x / w - 1;
+        let y = 1 - 2 * point2D.y / h;
+        
+        mat4.getInverse(mat4.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));        
+        
+        return new THREE.Vector3(x, y, 0).applyMatrix4(mat4);
+    }
+    
+    function toClipSpace(point2D, w, h, result) {
+        let x = 2 * point2D.x / w - 1;
+        let y = 1 - 2 * point2D.y / h;
+        result.set(x, y, 0);
+    }
+    
+    function getPickedObjects3D(objects, camera, mouseVector) {
+        let raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouseVector, camera);
+        return raycaster.intersectObjects(objects, true);
+    }
+    
+    function planeThrou3Points(v1, v2, v3) {
+        var planeGeom, planeMat, planeMesh;
+        var normal = v2.clone().sub(v1).cross(v3.clone().sub(v2)).normalize();
+        var center = v1.clone().add(v2).add(v3).multiplyScalar(1 / 3);
+        
+        planeGeom = new THREE.PlaneBufferGeometry(1500, 1500);
+        planeMat = new THREE.MeshBasicMaterial({color: 0x9999a, side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthTest: false});
+        planeMesh = new THREE.Mesh(planeGeom, planeMat);            
+        
+        var orthoPlaneNormal = new THREE.Vector3(0, 0, 1);            
+        var axis = normal.clone().cross(orthoPlaneNormal);
+        var angle = Math.acos( normal.dot( orthoPlaneNormal ) );
+        
+        var rotationWorldMatrix = new THREE.Matrix4();
+        rotationWorldMatrix.makeRotationAxis(axis.normalize(), -angle);
+        planeMesh.matrix.multiply(rotationWorldMatrix);
+        planeMesh.rotation.setFromRotationMatrix(planeMesh.matrix);
+        planeMesh.position.set(center.x, center.y, center.z);
+        //planeMesh.lookAt(normal)
+        
+        //planeGeom = new THREE.Geometry();
+        //planeGeom.vertices.push(v1, v2, v3);
+        //var face = new THREE.Face3(0, 1, 2);
+        //planeGeom.faces.push(face);            
+        //planeGeom.computeFaceNormals();
+        //planeGeom.computeVertexNormals();
+        //planeMat = new THREE.MeshBasicMaterial({color: 0x989898, side: THREE.DoubleSide});
+        //planeMesh = new THREE.Mesh(planeGeom, planeMat);
+        
+        return planeMesh;
+    }
+    
     Global.math = Global.math || {
         Vec2: Vec2,
         Vec3: Vec3,
@@ -514,7 +567,11 @@
         getRandomInt: getRandomInt,
         radToDeg: radToDeg,
         degToRad: degToRad,
-        getAngle: getAngle
+        getAngle: getAngle,
+        toWorldSpace: toWorldSpace,
+        toClipSpace: toClipSpace,
+        getPickedObjects3D: getPickedObjects3D,
+        planeThrou3Points: planeThrou3Points
     };
 
 })(jQuery, THREE, DSSGeometry);

@@ -1,8 +1,7 @@
 "use strict";
 
 // TODO:
-// 1. Show shape designations
-// 2. Fix bug with Segment.prototype.contains method (sometimes returns false for fixed length segments because of the condition Math.floor(a1 + a2) == Math.floor(this.length))
+// 1. Fix bug with Segment.prototype.contains method (sometimes returns false for fixed length segments because of the condition Math.floor(a1 + a2) == Math.floor(this.length))
 
 ;(function($, THREE, Global) {
     
@@ -11,6 +10,7 @@
         Vec3 = Global.math.Vec3,
         Mat2 = Global.math.Mat2,
         Mat3 = Global.math.Mat3,
+        toWorldSpace = Global.math.toWorldSpace,
         radToDeg = Global.math.radToDeg,
         degToRad = Global.math.degToRad,
         getAngle = Global.math.getAngle,
@@ -234,6 +234,19 @@
     
     Shape.prototype.setOpacity = function(value) {
         this.opacity = value;
+        if (this.container3) {            
+            if (this.className !== "Text2d" && this.className !== "Vector") {   //  vector opacity can't be updated
+                this.container3.getObjectByName("child" + this.getID()).material.transparent = true;    
+                this.container3.getObjectByName("child" + this.getID()).material.opacity = value;
+            }
+        }
+        if (this.className == "Point") {
+            let p = this.scene.getObjectByName(this.getID());
+            if (p) {
+                p.material.transparent = true;
+                p.material.opacity = value;    
+            }
+        }
     };
     
     Shape.prototype.getOpacity = function() {
@@ -373,6 +386,9 @@
         }
         
         this.color = attrs.strokeStyle;
+        if (this.container3) {
+            this.container3.getObjectByName("child" + this.getID()).material.color.set(this.color); 
+        }
     };
     
     Line.prototype.getFillColor = function() {        
@@ -413,8 +429,8 @@
         lineMesh = new THREE.Line(lineGeometry, lineMaterial);
         lineMesh.name = "child" + this.getID();
         
-        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));       
+        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));       
         
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
@@ -581,6 +597,9 @@
         }
         
         this.color = attrs.strokeStyle;
+        if (this.container3) {
+            this.container3.getObjectByName("child" + this.getID()).material.color.set(this.color); 
+        }
     };
     
     Ray.prototype.getFillColor = function() {        
@@ -618,8 +637,8 @@
         parent = new THREE.Object3D();
         parent.add(rayMesh);
         rayMesh.name = "child" + this.getID();
-        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(5, new THREE.Vector3(this.points[2].x - this.cnvW/2, 0, this.points[2].y - this.cnvH/2));
+        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(4, new THREE.Vector3(this.points[2].x - this.cnvW/2, 0, this.points[2].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[2].getID();
         parent.add(p1); parent.add(p2);
@@ -786,6 +805,9 @@
         }
         
         this.color = attrs.strokeStyle;
+        if (this.container3) {
+            this.container3.getObjectByName("child" + this.getID()).material.color.set(this.color); 
+        }
     };
     
     Segment.prototype.getFillColor = function() {        
@@ -936,8 +958,8 @@
         segmentMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(segmentMesh);
-        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
@@ -1008,6 +1030,13 @@
         }
         
         this.color = attrs.strokeStyle;
+        if (this.container3) {
+            this.container3.remove("child" + this.getID());     //  because of framework ArrowHelper can't be updated potential performance bottletneck here is unavoidable
+            let vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2), 
+					new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2), this.color, 70, 15);
+            vectorMesh.name = "child" + this.getID();
+            this.container3.add(vectorMesh ); 
+        }
     };
     
     Vector.prototype.getFillColor = function() {        
@@ -1029,8 +1058,8 @@
         vectorMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(vectorMesh);
-        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(3, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
@@ -1041,12 +1070,12 @@
     };
     
     Vector.prototype.transform = function(transformProps, mdown, mmove) {
-        let points = this.points, diff = new Vec2();
-        if (!this.container3) {
-            log("can't transform 3D version of this shape ...")
-            return;
+
+        let points = this.points, diff = new Vec2(), sh;
+        if (this.container3) {
+            sh = this.container3.getObjectByName("child" + this.getID());    
         }
-        let sh = this.container3.getObjectByName("child" + this.getID());
+				
         if (!this.transformable) {
             return;
         }
@@ -1061,11 +1090,11 @@
         if (this.translatable && transformProps.translating) {
             diff = mmove.sub(mdown);
             this.translate(diff);
-            sh.translateX(diff.x);
-            sh.translateZ(diff.y);
+            sh && sh.translateX(diff.x);
+            sh && sh.translateZ(diff.y);
             mdown.set(mmove.x, mmove.y);
         }
-        this.transformIn_3D();
+        sh && this.transformIn_3D();
         this.updateMeasureTexts();
     };
     
@@ -1210,6 +1239,9 @@
         this.renderParams.fillColor = attrs.fillColor;
         //this.renderParams.sideColor = attrs.strokeStyle;
         this.setBoundaryWidth(attrs.lineWidth || 1);
+        if (this.container3) {
+            this.container3.getObjectByName("child" + this.getID()).material.color.set(this.renderParams.fillColor); 
+        }
     };
     
     Polygon.prototype.getFillColor = function() {        
@@ -1242,17 +1274,17 @@
         let temp, parent = new THREE.Object3D(), p;
         
         polygonShape.moveTo(points[0].x - this.cnvW/2, points[0].y - this.cnvH/2);
-        p = createPoint3D(5, new THREE.Vector3(points[0].x - this.cnvW/2, 0, points[0].y - this.cnvH/2));
+        p = createPoint3D(4, new THREE.Vector3(points[0].x - this.cnvW/2, 0, points[0].y - this.cnvH/2));
         p.name = points[0].getID();
         parent.add(p);
         for (let i = 1; i < points.length; i++) {
             polygonShape.lineTo(points[i].x - this.cnvW/2, points[i].y - this.cnvH/2);
-            p = createPoint3D(5, new THREE.Vector3(points[i].x - this.cnvW/2, 0, points[i].y - this.cnvH/2));
+            p = createPoint3D(4, new THREE.Vector3(points[i].x - this.cnvW/2, 0, points[i].y - this.cnvH/2));
             p.name = points[i].getID();
             parent.add(p);
         }
         let polygonGeom = new THREE.ShapeGeometry(polygonShape);
-        for (let i = 0; i < polygonGeom.vertices.length; i++) {	//	maping to xz plane
+        for (let i = 0; i < polygonGeom.vertices.length; i++) {         //	maping to xz plane
             temp = polygonGeom.vertices[i].y;
             polygonGeom.vertices[i].y = 0;
             polygonGeom.vertices[i].z = temp;
@@ -1429,8 +1461,7 @@
             this.outCircle = new Circle(new Vec2(x0, y0), r, renderParams || {});
             this.outCircle.circleCenter = new Circle(new Vec2(x0, y0), 1, {});
         return this.outCircle;
-    };
-    
+    };    
     
     /**
      *  class RegularPolygon  
@@ -1594,6 +1625,9 @@
         this.fillColor = attrs.fillColor;
         //this.strokeStyle = attrs.strokeStyle;
         this.setBoundaryWidth(attrs.lineWidth || 1);
+        if (this.container3) {
+            this.container3.getObjectByName("child" + this.getID()).material.color.set(this.fillColor); 
+        }
     };
     
     Circle.prototype.getFillColor = function() {        
@@ -1621,17 +1655,21 @@
     };
     
     Circle.prototype.createMeshFromThis = function() {
-        let circleGeometry = new THREE.Geometry(), parent = new THREE.Object3D();
-        for (let alpha = 0; alpha <= 360; alpha++) {
-            circleGeometry.vertices.push(new THREE.Vector3(this.R * Math.cos(alpha * degToRad), 0, this.R * Math.sin(alpha*degToRad)));
+        let circleGeometry = new THREE.CircleGeometry(this.R, 64), parent = new THREE.Object3D();
+        //for (let alpha = 0; alpha <= 360; alpha++) {
+        //    circleGeometry.vertices.push(new THREE.Vector3(this.R * Math.cos(alpha * degToRad), 0, this.R * Math.sin(alpha*degToRad)));
+        //}
+        for (let i = 0; i < circleGeometry.vertices.length; i++) {
+            circleGeometry.vertices[i].z = circleGeometry.vertices[i].y;
+            circleGeometry.vertices[i].y = 0;
         }
-        let mat = new THREE.LineBasicMaterial( {color: new THREE.Color(this.strokeStyle).getHex() } );
-        let circleMesh = new THREE.Line(circleGeometry, mat);
+        let mat = new THREE.MeshBasicMaterial( {color: new THREE.Color(this.fillColor).getHex(), side: THREE.DoubleSide } );
+        let circleMesh = new THREE.Mesh(circleGeometry, mat);
         circleMesh.name = "child" + this.getID();
         circleMesh.position.set(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2);
-        let p1 = createPoint3D(5, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
         p1.name = this.points[0].getID();
-        let p2 = createPoint3D(5, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
         parent.add(circleMesh);
@@ -1720,10 +1758,10 @@
             p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
-        for (let alpha = 0, i = 0; alpha <= 360; alpha++) {
-            sh.geometry.vertices[i].x = this.R * Math.cos(alpha * degToRad);
+        sh.geometry = new THREE.CircleGeometry(this.R, 64);
+        for (let i = 0; i < sh.geometry.vertices.length; i++) {
+            sh.geometry.vertices[i].z = sh.geometry.vertices[i].y;
             sh.geometry.vertices[i].y = 0;
-            sh.geometry.vertices[i++].z = this.R * Math.sin(alpha*degToRad);
         }
         sh.position.set(center.x - this.cnvW/2, 0, center.y- this.cnvH/2)
         sh.geometry.verticesNeedUpdate = true;
@@ -1851,6 +1889,10 @@
         
         this.fillColor = attrs.fillColor;
         this.setBoundaryWidth(attrs.lineWidth || 2);
+        let p = this.scene.getObjectByName(this.getID());
+        if (p) {
+            p.material.color.set(this.fillColor);
+        }
     };
     
     Point.prototype.getFillColor = function() {        
@@ -1885,7 +1927,7 @@
     };
     
     Point.prototype.createMeshFromThis = function() {
-        let point3D = createPoint3D(5, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
+        let point3D = createPoint3D(4, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
         point3D.name = this.getID();
         this.scene.add(point3D);
         return point3D;
@@ -1893,7 +1935,7 @@
     
     Point.prototype.render = function() {
         if (!this.isVisible) {
-            log("this point is NOT visible")
+            //log("this point is NOT visible")
             return;
         }        
         let ctx = this.ctx, center = this;
@@ -2124,6 +2166,7 @@
         let mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
         let point3D = new THREE.Mesh( point3DGeom, mat );
         point3D.position.set(v.x || 0, v.y || 0, v.z || 0);
+        point3D.name = "point3D";
         return point3D;
     }
     
@@ -2143,7 +2186,7 @@
             return true;
         }
         return false;
-    };
+    }
     
     Global.shapes = Global.shapes || {
         Shape: Shape,
@@ -2157,6 +2200,7 @@
         Circle: Circle,
         Point: Point,
         Text2d, Text2d,
+        createPoint3D: createPoint3D,
         createCoordinateSystem: createCoordinateSystem
     };
 

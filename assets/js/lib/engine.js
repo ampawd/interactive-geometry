@@ -13,15 +13,15 @@
      *  @description: transform, get and select shapes by id, point
      *                create, find shapes group for given shape
      *                get transform props for current shape
-     */
-    
+     */    
     function GeometryEngine() {};
     
+    //  finds all connected shapes to constructedShape and connects with them
     GeometryEngine.prototype.createConnectedShapesGroup = function(constructedShape) {
         if (!constructedShape) {
             throw("can't create shapes group for undefined shape");
         }
-        let connectedShapes = this.findConnectedShapesGroup(constructedShape);			
+        let connectedShapes = this.findConnectedShapesGroup(constructedShape);
         constructedShape.attach(constructedShape);
         connectedShapes.forEach(function(connectedShape) {
             constructedShape.attach(connectedShape);
@@ -36,7 +36,8 @@
         });
     };
     
-    //  private
+    //  private method
+    //  recursively finds all shapes connected to shape storing result in connShapes (helper for findConnectedShapesGroup method)
     GeometryEngine.prototype._findConnectedShapesGroup = function(shape, picked, connShapes) {
         if (!shape) {
             return;
@@ -44,7 +45,7 @@
         for (let i = 0, p; i < shape.points.length; i++) {
             p = shape.points[i];
             let props = this.getShapesGroupTransformProps(p, false); 			
-            for (let id in props) {			
+            for (let id in props) {
                 connShapes.set(id, this.shapes.get(id));
                 if (!picked[id]) {
                     picked[id] = 1;
@@ -60,23 +61,21 @@
         return connShapes;
     };
     
+    //  returns connectedShapes by 2D point
     GeometryEngine.prototype.getConnectedShapesGroupByPoint = function(p) {
         let connectedShapes = new Map(), _this = this,
         pickedID = _this.getShapeIDByPoint(p);
         if (pickedID !== -1) {
             connectedShapes =  _this.shapes.get(pickedID).connectedShapes;
         }
-        //log(pickedID, connectedShapes);
         return connectedShapes;
     };
     
+    //  returns id of the shape that has point p
     GeometryEngine.prototype.getShapeIDByPoint = function(p) {
         let currentShape, _this = this, pickedID = -1;			
         for (var entry of _this.shapes) {
             currentShape = entry[1];
-            //if (currentShape.className === "Text2d") {
-            //    continue;
-            //}
             for (let i = 0; i < currentShape.points.length; i++) {
                 if (currentShape.pointsHave({}, p)) {
                     pickedID = entry[0];
@@ -90,6 +89,7 @@
         return pickedID;
     };
     
+    //  checks if point p is a part(contains, inside or on the boundary) of first founded shape, false if no such shape found
     GeometryEngine.prototype.anyShapeContains = function(p) {
         for (let entry of this.shapes) {
             if (entry[1].pointsHave({}, p) || entry[1].contains(p) || entry[1].boundaryContains([], p)) {
@@ -99,6 +99,7 @@
         return false;
     };
     
+    //  checks only if point p is inside of any shape,  false if no such shape found
     GeometryEngine.prototype.insideAnyShape = function(p) {
         for (let entry of this.shapes) {
             if (!entry[1].pointsHave({}, p) && !entry[1].boundaryContains([], p) && entry[1].contains(p) ) {
@@ -108,6 +109,7 @@
         return false;
     };
     
+    //  checks only if point p is one of the points of first founded shape, false if no such shape found
     GeometryEngine.prototype.onAnyPointOfAnyShape = function(p) {
         for (let entry of this.shapes) {
             if (entry[1].pointsHave({}, p) ) {
@@ -117,6 +119,7 @@
         return false;
     };
     
+    //  collect all transformation information (user actions with the shape when clicking on canvas) of point p in shapesGroup (which is Map)
     GeometryEngine.prototype.getShapesGroupTransformProps = function(p, checkForTranslation, shapesGroup) {
         shapesGroup = shapesGroup && shapesGroup.size > 0 ? shapesGroup : this.shapes;
         let transformProps = {}, _this = this, prevent = false;
@@ -144,16 +147,17 @@
         return transformProps;
     };
     
+    //  transform all shapes based on transformProps information for each shape
     GeometryEngine.prototype.transformShapes = function(transformProps, mdown, mmove) {
         for (let pickedID in transformProps) {
             let pickedShape = this.shapes.get(pickedID);
             if (pickedShape) {
                 pickedShape.transform(transformProps[pickedID], mdown, mmove);
                 if (transformProps[pickedID].translating) {
-                    pickedShape.transformConnectedShapes(mdown, mmove);
+                    pickedShape.transformConnectedShapes(mdown, mmove); //  consider translating as well
                 }
                 pickedShape.advancedTransform(mdown, mmove);
-                pickedShape.updateMidPoints(mdown, mmove);
+                pickedShape.updateMidPoints(mdown, mmove);  //  save mid points as mid points when transforming
             }
         }
     };

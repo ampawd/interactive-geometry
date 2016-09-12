@@ -1,7 +1,7 @@
 "use strict";
 
 // TODO:
-// 1.
+// 1. Picking a point on a 3D object when constructing new 3D objects and plane surface
 
 ;(function($, THREE, Global) {
     
@@ -20,10 +20,15 @@
         Circle = Global.shapes.Circle,
         Point = Global.shapes.Point,
         Text2d = Global.shapes.Text2d,
+        createPoint3D = Global.shapes.createPoint3D,
 		Vec2 = Global.math.Vec2,
         getAngle = Global.math.getAngle,
         radToDeg = Global.math.radToDeg,
         degToRad = Global.math.degToRad,
+        toWorldSpace = Global.math.toWorldSpace,
+        toClipSpace = Global.math.toClipSpace,
+        getPickedObjects3D =  Global.math.getPickedObjects3D,
+        planeThrou3Points = Global.math.planeThrou3Points,
         GeometryEngine = Global.engine.GeometryEngine;
     
     
@@ -439,7 +444,8 @@
                             shape = 0;
                             return shape;
                         } else {
-                            geometryEngine.stickPointToFounded(v1).translatable = false;
+                            let foundedPoint = geometryEngine.stickPointToFounded(v1);
+                            foundedPoint && (foundedPoint.translatable = false);
                             lambda = cnvW + cnvH;
                             let p1 = toShape.points[_2PointsIndexes[0]],
                                 p2 = toShape.points[_2PointsIndexes[1]],
@@ -505,7 +511,7 @@
     function getPolygonConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let renderParams = {
             strokeStyle: "#000",
-            fillColor: "#00f",
+            fillColor: "#cf3939",
             lineWidth: 1
         },
         points = [], currentPoint = 0,
@@ -618,6 +624,7 @@
     function getCircleConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let renderParams = {
             strokeStyle: "#000",
+            fillColor: "#569",
             lineWidth: 1
         },
         geometryEngine = new GeometryEngine(),
@@ -708,9 +715,299 @@
         };
     }
     
-    function shapeConstructorFactory(cnvParams, shapes) {
+    function get3DShapesConstructor(subtoolName, cnvParams, mdown, mmove, shapes, shapes_3D) {
+        let renderParams = {
+            strokeStyle: "#000",
+            fillColor: "#569",
+            lineWidth: 1
+        },
+        geometryEngine = new GeometryEngine(),
+        objectsOpacity = 0.6,
+        mesh = 0,
+        point3DSize = 10,
+        shapeParts = [],
+        meshPosition = new THREE.Vector3(),
+        radius = 0, numVertices = 3,
+        clicks = 0,
+        cylHeight = 0,
+        boxSizes,
+        container,
+        cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
+        cnvOffsetY = cnvParams.cnvOffsetY,
+        mouse3D = new THREE.Vector3(),
+        mdown3D = new THREE.Vector3(),
+        helpCenterMesh = new THREE.Mesh(new THREE.SphereGeometry(10, 64, 64), new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: 0.85})),
+        mat4 = new THREE.Matrix4(),
+        mat41 = new THREE.Matrix4();
+        //cnvParams.scene.add(helpCenterMesh);
+        
+        return {
+            constructionStarted: function() {
+                return clicks == 0;
+            },				
+            initConstruction: function() {
+                mdown3D = toWorldSpace(mdown, cnvParams.w, cnvParams.h, cnvParams.camera, mat41);
+                mdown3D.set(mdown3D.x, 0, mdown3D.z);
+            },
+            constructionReady: function() {
+                switch (subtoolName) {
+                    case "sphererad":
+                        let coordArray = prompt("Specify center coordinates separated with semicolon");
+                        if (coordArray === null) {
+                            return false;
+                        }
+                        coordArray = coordArray.split(",");
+                        meshPosition.set(+coordArray[0], +coordArray[1], +coordArray[2]);
+                        if (!meshPosition) {
+                            alert("Enter valid center coordinates");
+                            return false;
+                        }
+                        radius = parseFloat( prompt("Enter sphere radius:") );
+                        if (!radius) {
+                            alert("Enter valid radius");
+                            return false;
+                        }
+                    break;
+                    case "box":
+                        let pos = prompt("Enter position coordinates separated with semicolon:");
+                            if (pos === null) {
+                                return false;
+                            }
+                            boxSizes = prompt("Specify the sizes separated with semicolon");
+                            if (boxSizes === null) {
+                                return false;
+                            }
+                            boxSizes = boxSizes.split(",");
+                            pos = pos.split(",");
+                            meshPosition.set(+pos[0], +pos[1], +pos[2]);
+                            if (!meshPosition) {
+                                alert("Enter valid box center coordinates");
+                                return false;
+                            }
+                    break;
+                    case "cylinder":
+                        let coordArrayCyl = prompt("Specify position coordinates separated with semicolon");
+                        if (coordArrayCyl === null) {
+                            return false;
+                        }
+                        coordArrayCyl = coordArrayCyl.split(",");
+                        meshPosition.set(+coordArrayCyl[0], +coordArrayCyl[1], +coordArrayCyl[2]);
+                        radius = parseFloat( prompt("Enter radius:") );
+                        if (!meshPosition) {
+                            alert("Enter valid center coordinates");
+                            return false;
+                        }
+                        if (!radius) {
+                            alert("Enter valid radius");
+                            return false;
+                        }
+                        cylHeight = parseFloat( prompt("Enter cylinder height:") );
+                        if (!cylHeight) {
+                            alert("Enter valid height for cylinder");
+                            return false;
+                        }
+                    break;
+                    case "cone":
+                        let coordArrayCone = prompt("Specify position coordinates separated with semicolon");
+                            if (coordArrayCone === null) {
+                                return false;
+                            }
+                            coordArrayCone = coordArrayCone.split(",");
+                            meshPosition.set(+coordArrayCone[0], +coordArrayCone[1], +coordArrayCone[2]);
+                            radius = parseFloat( prompt("Enter radius for base:") );
+                            if (!meshPosition) {
+                                alert("Enter valid center coordinates");
+                                return false;
+                            }
+                            if (!radius) {
+                                alert("Enter valid radius");
+                                return false;
+                            }
+                            cylHeight = parseFloat( prompt("Enter cone height:") );
+                            if (!cylHeight) {
+                                alert("Enter valid height for cone");
+                                return false;
+                            }
+                    break;
+                    case "prism":
+                        let coordArrayPrism = prompt("Specify position coordinates separated with semicolon");
+                            if (coordArrayPrism === null) {
+                                return false;
+                            }
+                            coordArrayPrism = coordArrayPrism.split(",");
+                            meshPosition.set(+coordArrayPrism[0], +coordArrayPrism[1], +coordArrayPrism[2]);
+                            let sideAndVerts = prompt("Enter polygon side and number of vertices:");
+                            if (!meshPosition) {
+                                alert("Enter valid center coordinates");
+                                return false;
+                            }
+                            if (!sideAndVerts) {
+                                alert("Enter valid polygon side");
+                                return false;
+                            }
+                            radius = parseFloat(sideAndVerts.split(",")[0]);
+                            numVertices = parseFloat(sideAndVerts.split(",")[1]);
+                            cylHeight = parseFloat( prompt("Enter prism height:") );
+                            if (!cylHeight) {
+                                alert("Enter valid height for prism");
+                                return false;
+                            }
+                    break;
+                }
+                
+                return true;
+            },
+            processConstruction: function(e) {
+                //switch (subtoolName) {
+                //    case "sphererad":               
+                //        break;
+                //    case "box":                  
+                //        break;
+                //    case "cylinder":
+                //        break;
+                //}            
+                //helpCenterMesh.position.set(mouse3D.x, 0, mouse3D.z);                
+                return shapeParts;
+            },
+            constructionEnding: function() {
+                return true;    //  clicks == 1;
+            },				
+            endConstruction: function() {
+                container = new THREE.Object3D();
+                container.position.set(meshPosition.x, meshPosition.y, meshPosition.z);  
+                switch (subtoolName) {
+                    case "sphererad":
+                        let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
+                        let sphereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: objectsOpacity, depthTest: false});
+                        mesh = new THREE.Mesh(sphereGeom, sphereMat);
+                        mesh.geometry.computeBoundingSphere();
+                        let center = mesh.geometry.boundingSphere.center;
+                        container.add(createPoint3D(point3DSize, center.clone()));
+                    break;
+                    case "box":
+                        let boxGeom = new THREE.BoxGeometry(+boxSizes[0], +boxSizes[1], +boxSizes[2]);
+                        let boxMat = new THREE.MeshLambertMaterial({color: 0xffeeee, transparent: true, opacity: objectsOpacity, depthTest: false});
+                        mesh = new THREE.Mesh(boxGeom, boxMat);
+                        boxGeom.vertices.forEach(function(vert) {
+                            container.add(createPoint3D(point3DSize, vert.clone()));
+                        });
+                    break;
+                    case "cylinder": case "cone": case "prism":
+                        let cylGeom = new THREE.CylinderGeometry(subtoolName == "cone" ? 0 : radius, radius, cylHeight, subtoolName == "prism" ? numVertices : 32, subtoolName == "prism" ? numVertices : 32);
+                        let cylMat = new THREE.MeshLambertMaterial({color: subtoolName == "cone" ? 0x456789 : subtoolName == "prism" ? 0x123456 : 0x554433, transparent: true, opacity: objectsOpacity, depthTest: false});
+                        mesh = new THREE.Mesh(cylGeom, cylMat);
+                        mesh.geometry.computeBoundingSphere();
+                        let centerCyl = mesh.geometry.boundingSphere.center;
+                        
+                        if (subtoolName === "cylinder" || subtoolName === "cone") {
+                            container.add(createPoint3D(point3DSize, new THREE.Vector3(centerCyl.x, centerCyl.y - cylHeight * 0.5, centerCyl.z)));
+                            container.add(createPoint3D(point3DSize, new THREE.Vector3(centerCyl.x, centerCyl.y + cylHeight * 0.5, centerCyl.z)));
+                        }
+                        
+                        if (subtoolName === "prism") {
+                            cylGeom.vertices.forEach(function(vert) {
+                                container.add(createPoint3D(point3DSize, vert.clone()));    
+                            });
+                        }
+                    break;
+                }
+                
+                container.add(mesh);
+                cnvParams.scene.add(container);
+                shapes_3D.set(container.uuid, container);
+                cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);		
+                
+                shapeParts = [];
+                clicks = 0;
+                radius = 0;
+                return mesh;
+            },
+            constructionNextStep: function() {
+                clicks++;
+            }
+        };
+    }
+    
+    function getSurfacesConstructor(subtoolName, cnvParams, mdown, mmove, shapes, shapes_3D) {
+        let renderParams = {
+            strokeStyle: "#000",
+            fillColor:   "#569",
+            lineWidth:    1
+        },
+        geometryEngine = new GeometryEngine(),
+        meshPosition = new THREE.Vector3(),
+        surfaceMesh = 0,
+        shapeParts = [], planePoints = [],
+        clicks = 0,
+        objs = [],
+        container = new THREE.Object3D(),
+        cnvOffsetX = cnvParams.cnvOffsetX + cnvParams.w + 5,
+        cnvOffsetY = cnvParams.cnvOffsetY,
+        mouse3D = new THREE.Vector3(),
+        mdown3D = new THREE.Vector3();
+        
+        cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+        
+        //let objects = [];
+        //for (let i = 0; i < cnvParams.scene.children.length; i++) {
+        //    if (cnvParams.scene.children[i].name !== "coordSystem" && cnvParams.scene.children[i].name !== "light1" && cnvParams.scene.children[i].name !== "xzPlane") {
+        //        cnvParams.scene.children[i].children.forEach(function(mesh) {
+        //            objects.push(mesh);         //  raycaster.intersects(objects) objects must be an array of meshes (not Object3D's)
+        //        });
+        //    }
+        //}
+        return {
+            constructionStarted: function() {
+                return clicks === 0;
+            },
+            initConstruction: function() {
+                toClipSpace(mdown, cnvParams.w, cnvParams.h, mdown3D);
+                objs = getPickedObjects3D(cnvParams.scene.children, cnvParams.camera, mdown3D);
+                
+                objs.forEach(function(intersect) {
+                    //log(intersect.object)
+                    if (intersect.object.name.indexOf("point") > -1) {
+                        planePoints.push(intersect.object.getWorldPosition()); 
+                    }
+                });
+            },
+            constructionReady: function() {
+                return true;
+            },
+            processConstruction: function(e) {
+                
+                return shapeParts;
+            },
+            constructionEnding: function() {
+                return clicks === 2;
+            },
+            endConstruction: function() {
+                if (planePoints.length === 3) {
+                    //log(planePoints)
+                    surfaceMesh = planeThrou3Points(planePoints[0], planePoints[1], planePoints[2]);
+                    cnvParams.scene.add(surfaceMesh);                    
+                    cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);     
+                } else {
+                    alert("plane must be defined by 3 points, you have selected only = " + planePoints.length);
+                }
+                
+                planePoints = [];
+                shapeParts = [];
+                clicks = 0;
+                return surfaceMesh;
+            },
+            constructionNextStep: function() {
+                clicks++;
+            }
+        };
+    }
+    
+    function shapeConstructorFactory(cnvParams, shapes, shapes3D, cameraParams, updateCamera) {
         this.cnvParams = cnvParams;
         this.shapes = shapes;
+        this.shapes_3D = shapes3D;
+        this.cameraParams = cameraParams;
+        this.updateCamera = updateCamera;
         
         this.getConstructor = function(toolName, subtoolName, mdown, mmove) {
             switch (toolName) {
@@ -724,6 +1021,10 @@
                     return getPolygonConstructor(subtoolName,   this.cnvParams, mdown, mmove, this.shapes);
                 case "circle":
                     return getCircleConstructor(subtoolName,    this.cnvParams, mdown, mmove, this.shapes);
+                case "_3DShape":
+                    return get3DShapesConstructor(subtoolName,  this.cnvParams, mdown, mmove, this.shapes, this.shapes_3D);
+                case "surfaces":
+                    return getSurfacesConstructor(subtoolName,  this.cnvParams, mdown, mmove, this.shapes, this.shapes_3D);
                 default:
                     return false;
             }

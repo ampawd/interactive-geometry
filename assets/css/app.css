@@ -27,7 +27,7 @@ html, body {
 }
 
 #top-tools-container {
-	background: #456;		/* #123 */
+	background: #234;		/* #123 */
 	margin: 3px auto;
 	border-radius: 7px;
 	border-bottom-left-radius: 0px;
@@ -131,6 +131,10 @@ html, body {
 	background: #ccc !important;
 }
 
+._3DShape, .surfaces {
+	display: none !important;
+}
+
 .top-tool {
 	padding: 10px 25px;
 	display: inline-block;
@@ -174,7 +178,7 @@ html, body {
 
 .sub-tool {
 	padding: 10px 25px !important;
-	background: #456;
+	background: #234;
 }
 
 .tool-help  {
@@ -182,8 +186,11 @@ html, body {
 }
 
 .active-subtool-help {
-	
+	display: none;
+	position: absolute;
 }
+
+.displaynone { display: none; }
 
 /*.sub-tools-help-container {
 	margin-top: 10px;
@@ -196,11 +203,16 @@ html, body {
 
 .tool-help, .active-subtool-help {
 	font-family: arial;
-	font-size: 13px;
+	font-size: 12px;
 	font-family: arial;
 	color: #fff;
 	vertical-align: top;
 	margin-left: 0px;
+	padding: 5px;
+	z-index: 999999;
+	background: #123;
+	border-radius: 5px;
+	text-align: center;
 }
 
 .selected:first-child {
