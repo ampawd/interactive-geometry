@@ -27,7 +27,7 @@ html, body {
 }
 
 #top-tools-container {
-	background: #456;		/* #123 */
+	background: #234;		/* #123 */
 	margin: 3px auto;
 	border-radius: 7px;
 	border-bottom-left-radius: 0px;
@@ -178,7 +178,7 @@ html, body {
 
 .sub-tool {
 	padding: 10px 25px !important;
-	background: #456;
+	background: #234;
 }
 
 .tool-help  {
