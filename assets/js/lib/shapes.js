@@ -1926,7 +1926,7 @@
     };
     
     Point.prototype.createMeshFromThis = function() {
-        let point3D = createPoint3D(4, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
+        let point3D = createPoint3D(10, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
         point3D.name = this.getID();
         this.scene.add(point3D);
         return point3D;
