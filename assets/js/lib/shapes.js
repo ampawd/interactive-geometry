@@ -1070,12 +1070,11 @@
     };
     
     Vector.prototype.transform = function(transformProps, mdown, mmove) {
-
         let points = this.points, diff = new Vec2(), sh;
         if (this.container3) {
             sh = this.container3.getObjectByName("child" + this.getID());    
         }
-				
+          
         if (!this.transformable) {
             return;
         }

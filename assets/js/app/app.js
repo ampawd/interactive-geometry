@@ -354,9 +354,8 @@
 			step: 0.01,
 			slide: function( event, ui ) {
 				if (cnvParams.selectedShape) {
-					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);			
-					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);					
-
+					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);					
+					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 					if (cnvParams.selectedShape.className !== "Text2d") {
 						$("#selected-shape-opacity-amount").val(ui.value);
 						cnvParams.selectedShape.setOpacity(parseFloat(ui.value));    
@@ -396,9 +395,8 @@
 		
 		uiParams.topTools.mouseover(function(e) {
 			$(".active-subtool-help").css({"display": "none"});
-
-
 			if ( $(e.target).find(".sub-tools").css('visibility') === "hidden" || uiParams.selectedToolName == "move" ) {	//	if subtools div block is hidden show tool explanations
+
 				if ($(e.target).attr("class").indexOf("top-tool") > -1) {
 					$(e.target).find(".active-subtool-help").fadeIn();
 				}
