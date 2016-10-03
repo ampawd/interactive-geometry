@@ -1,8 +1,8 @@
 "use strict";
 
 // TODO:
-//	1. Show lines on objects
-//	2. Find intersection points of object and surface
+//	1. Find intersection points of object and surface
+//	2. Fix issue with designations projection on overlay2D cavnas
 
 ;(function($, THREE, Global) {
 	
