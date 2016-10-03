@@ -15,7 +15,7 @@
 		deletedShapes,
 		percent,
 		actualWindowWidth,
-		documentHeight,
+		windowHeight,
 		geometryEngine,
 		
 		log = Global.utils.log,
@@ -42,7 +42,7 @@
 	function initParams() {
 		percent = 5;
 		actualWindowWidth = getActualWinWidth();
-		documentHeight = $(document).height();
+		windowHeight = $(window).height();
 
 		cnvParams = {};
 		uiParams = {};
@@ -75,13 +75,14 @@
 		uiParams.surfaceShapesTools = $(".surfaces");
 		
 		cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent)/100 );
-		cnvParams.cnv.attr("height", documentHeight - uiParams.topToolsContainerFullHeight - 10);
+		cnvParams.cnv.attr("height", windowHeight - uiParams.topToolsContainerFullHeight - 10);
 		cnvParams.w = cnvParams.cnv.width();
 		cnvParams.h = cnvParams.cnv.height();
 		cnvParams.bothCanvasesWidth = cnvParams.w;
 		cnvParams.cnvOffsetX = (actualWindowWidth - cnvParams.w) / 2,
 		cnvParams.cnvOffsetY = uiParams.topToolsContainerFullHeight;
 		cnvParams.cnv.css({"left": cnvParams.cnvOffsetX, "top": cnvParams.cnvOffsetY});
+		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
 		cameraParams = {
 			distance : 1,
 			newTarget: new THREE.Vector3(),
@@ -93,7 +94,6 @@
 			thetam:	   0,
 			fov:	   55
 		};
-		uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
 	}
 	
 	function setUp3D() {
@@ -137,11 +137,7 @@
 		} else {
 			cnvParams.camera = new THREE.OrthographicCamera(-cnv3DWidth, cnv3DWidth, cnvParams.h, -cnvParams.h, -2000, 2000);
 			cameraParams.distance = 1;
-		}	
-		
-		cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
-		cnvParams.renderer.setClearColor(0xffffff, 1);
-		cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
+		}
 		$(cnvParams.renderer.domElement).css({"margin-left": cnvParams.w + cnvParams.cnvOffsetX + 5, "margin-top": 1});
 		
 		cnvParams.cnv2DOverlay.attr("width", cnv3DWidth);
@@ -181,11 +177,15 @@
 		Shape.prototype.cnvW = cnv3DWidth;
 		Shape.prototype.camera = cnvParams.camera;
 		
+		cnvParams.renderer.setSize(cnv3DWidth, cnvParams.h);
+		cnvParams.renderer.setClearColor(0xffffff, 1);
+		
 		prepare3DShapes();
 		updateCamera();
-		//cameraParams.light1.position.set(cnvParams.camera.position.x, cnvParams.camera.position.y, cnvParams.camera.position.z);		
-		cnvParams.renderer.render(cnvParams.scene,  cnvParams.camera);			//	initial rendering		
 		create3DInteractivities();
+		
+
+		cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);			//	initial rendering
     }
 	
 	function create3DInteractivities() {
@@ -275,9 +275,36 @@
 	}
 	
 	function setUpGlobalEvents() {
-		$(window).resize(initParams);
 		let factor = 2, cnv3DWidth;
-		
+		$(window).resize(function() {
+			cnvParams.scene.remove(cnvParams.scene.getObjectByName("light1"));
+			cnvParams.scene.remove(cnvParams.scene.getObjectByName("coordSystem"));
+			cnvParams.scene.remove(cnvParams.scene.getObjectByName("xzPlane"));
+			
+			percent = 5; factor = 2;
+			actualWindowWidth = getActualWinWidth();
+			windowHeight = $(window).height();
+			
+			cnvParams.cnv.attr("width", actualWindowWidth - (actualWindowWidth*percent)/100 );
+			cnvParams.cnv.attr("height", windowHeight - uiParams.topToolsContainerFullHeight - 10);
+			cnvParams.w = cnvParams.cnv.width();
+			cnvParams.h = cnvParams.cnv.height();
+			cnvParams.bothCanvasesWidth = cnvParams.w;
+			cnvParams.cnvOffsetX = (actualWindowWidth - cnvParams.w) / 2,
+			cnvParams.cnvOffsetY = uiParams.topToolsContainerFullHeight;
+			cnvParams.cnv.css({"left": cnvParams.cnvOffsetX, "top": cnvParams.cnvOffsetY});
+			uiParams.topToolsContainer.css({"width": cnvParams.w, "margin-left": cnvParams.cnvOffsetX});
+			
+			if (cnvParams._3DviewEnabled) {
+				cnvParams.cnv.attr("width", actualWindowWidth/factor - ((actualWindowWidth/factor)*percent)/100 );
+				cnvParams.w = cnvParams.cnv.width();		
+				cnv3DWidth = cnvParams.bothCanvasesWidth - cnvParams.w - 5;
+				setUP3DView(cnv3DWidth);	
+            }
+			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
+			renderShapes();
+		});
 		uiParams._3dviewCheckBox.click(function(e) {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			if (uiParams._3dviewCheckBox.is(':checked')) {

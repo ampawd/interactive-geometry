@@ -753,6 +753,18 @@
             },
             constructionReady: function() {
                 switch (subtoolName) {
+                    case "point3d":
+                        let pointCoordArray = prompt("Specify the point coordinates separated with semicolon");
+                        if (pointCoordArray === null) {
+                            return false;
+                        }
+                        pointCoordArray = pointCoordArray.split(",");
+                        meshPosition.set(+pointCoordArray[0], +pointCoordArray[1], +pointCoordArray[2]);
+                        if (!meshPosition) {
+                            alert("Enter valid center coordinates");
+                            return false;
+                        }
+                    break;
                     case "sphererad":
                         let coordArray = prompt("Specify center coordinates separated with semicolon");
                         if (coordArray === null) {
@@ -879,6 +891,9 @@
                 container.position.set(meshPosition.x, meshPosition.y, meshPosition.z);
                 //depthTest: false
                 switch (subtoolName) {
+                    case "point3d":
+                        mesh = createPoint3D(point3DSize, meshPosition.clone());
+                    break;
                     case "sphererad":
                         let sphereGeom = new THREE.SphereGeometry(radius, 64, 64);
                         let sphereMat = new THREE.MeshLambertMaterial({color: 0x333333, transparent: true, opacity: objectsOpacity});
@@ -922,7 +937,8 @@
                         
                         if (subtoolName === "prism") {
                             helper = new THREE.EdgesHelper( mesh, 0x000000 );
-                            container.add( helper );
+                            helper.position.set(meshPosition.x, meshPosition.y, meshPosition.z);
+                            cnvParams.scene.add( helper );
                             cylGeom.vertices.forEach(function(vert) {
                                 container.add(createPoint3D(point3DSize, vert.clone()));    
                             });
