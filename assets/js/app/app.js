@@ -182,8 +182,7 @@
 		
 		prepare3DShapes();
 		updateCamera();
-		create3DInteractivities();
-		
+		create3DInteractivities();	
 
 		cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);			//	initial rendering
     }
@@ -314,8 +313,16 @@
 				cnvParams._3DviewEnabled = true;
 				cnvParams.cnv.attr("width", actualWindowWidth/factor - ((actualWindowWidth/factor)*percent)/100 );
 				cnvParams.w = cnvParams.cnv.width();		
-				cnv3DWidth = cnvParams.bothCanvasesWidth - cnvParams.w - 5;
+				cnv3DWidth = cnvParams.bothCanvasesWidth - cnvParams.w - 5;				
 				setUP3DView(cnv3DWidth);
+				for (let i = cnvParams.scene.children.length-1; i >= 0; i--) {
+                    let p3d = cnvParams.scene.children[i];					
+					if ( p3d.name.indexOf("point") > -1) {
+                        if (shapes.get(p3d.name).isOnBoundary) {
+							cnvParams.scene.remove( p3d );
+						}
+                    }					
+                }
 			} else {
 				uiParams.projectionSelect.attr("disabled", true);
 				uiParams._3DShapesTools.attr("style", "display: none !important");
@@ -452,6 +459,7 @@
 		Shape.prototype.scene = cnvParams.scene;
 		Shape.prototype.camera = cnvParams.camera;
 		Shape.prototype.shapes = shapes;
+		Shape.prototype.shapes_3D = shapes_3D;
 		Shape.prototype.geometryEngine = new GeometryEngine();
 	}
 	
@@ -626,6 +634,12 @@
 					log("shape is not created");
 					return;
 				}
+				shape.className !== "Point" && shape.points.forEach(function(p) {
+					if (p.isOnBoundary) {
+                        shape.translatable = false;
+                    }
+				});
+				
 				shapes.set(shape.getID(), shape);
 				geometryEngine.unEmphasizeShapesPoints();
 				geometryEngine.unEmphasizeShapes();
@@ -685,8 +699,7 @@
 			
 			if (shapeConstructor.constructionEnding()) {
 				cnvParams.cnv3D.off("mousemove");
-				$("#canvas2DOverlay").off("mousemove");
-				
+				$("#canvas2DOverlay").off("mousemove");				
 				
 				shape = shapeConstructor.endConstruction();
 				if (!shape) {
@@ -740,8 +753,7 @@
 						break;
 					}
 				}
-			}
-			
+			}			
 			if (cnvParams.selectedShape) {
 				if (cnvParams.selectedShape.className !== "Point" && cnvParams.selectedShape.className !== "Text2d") {
 					cnvParams.selectedShape.setBoundaryWidth(2);
@@ -755,7 +767,7 @@
 				cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 				renderShapes();
 			}
-				  
+			//log(cnvParams.selectedShape)
 			if (!useOldTransformProps) {                	
 				transformProps = geometryEngine.getShapesGroupTransformProps(mdown, true, connectedShapesGroup);
 			}

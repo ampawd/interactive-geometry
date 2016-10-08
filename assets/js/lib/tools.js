@@ -31,6 +31,7 @@
         planeThrou3Points = Global.math.planeThrou3Points,
         segment3D = Global.math.segment3D,
         circle3D = Global.math.circle3D,
+        point3DSize = Global.math.point3DSize,
         GeometryEngine = Global.engine.GeometryEngine;
     
     /**
@@ -259,6 +260,24 @@
                     break;
                 }
                 shape.points.push(shape);
+                let foundedShape = geometryEngine.onAnyShapesBoundary(shape);
+                if (foundedShape) {
+                    foundedShape.points.push(shape);
+                    foundedShape.boundaryContainsOtherPoints = true;
+                    shape.isOnBoundary = true;
+                    if (foundedShape.className === "Circle") {
+                        let center = foundedShape.getCenter();
+                        let alpha = Math.atan2(shape.y - center.y, shape.x - center.x);                     
+                        shape.set(center.x + foundedShape.R * Math.cos(alpha), center.y + foundedShape.R * Math.sin(alpha));
+                    }                    
+                    //let shapes_3D = foundedShape.shapes_3D, shapeID = shape.getID();                    
+                    //if (foundedShape.className !== "Text2d") {
+                    //    cnvParams.scene.remove( cnvParams.scene.getObjectByName(foundedShape.getID()) );
+                    //    cnvParams.scene.remove( cnvParams.scene.getObjectByName(shapeID) );
+                    //    let shape_3D = foundedShape.createMeshFromThis();
+                    //}
+                    //log( cnvParams.scene.children );
+                }
                 geometryEngine.createConnectedShapesGroup(shape);
                 return shape;
             },
@@ -725,7 +744,6 @@
         geometryEngine = new GeometryEngine(),
         objectsOpacity = 0.6,
         mesh = 0,
-        point3DSize = 10,
         shapeParts = [],
         meshPosition = new THREE.Vector3(),
         radius = 0, numVertices = 3,

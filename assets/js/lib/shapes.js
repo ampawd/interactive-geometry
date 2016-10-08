@@ -20,6 +20,7 @@
         translationMat = Global.math.translationMat,
         rotationMat = Global.math.rotationMat,
         scaleMat = Global.math.scaleMat,
+        point3DSize = Global.math.point3DSize,
         getPropsCountOf = Global.utils.getPropsCountOf;
      
     /**
@@ -54,10 +55,12 @@
             this.distancePoints = new Map();
             this.angleTextShapes = new Map();
             this.anglePoints = new Map();
+            this.boundaryContainsOtherPoints = false;
         }
         
         if (this.className === "Point") {
             this.isMidPoint = false;
+            this.isOnBoundary = false;
         }
     }
     
@@ -83,7 +86,7 @@
     
     Shape.prototype.attach = function(shape) {
         this.connectedShapes.set(shape.getID(), shape);
-        for (let i = 0; i < shape.points.length; i++) {
+        for (let i = 0; i < shape.points.length; i++) {                
             for (let j = 0; j < this.points.length; j++) {
                 if (shape.points[i].contains(this.points[j])) {
                     this.points[j] = shape.points[i]; 
@@ -271,6 +274,10 @@
         throw("Abstract method can't be called");  
     };
     
+    Shape.prototype.updateBoundaryPoints = function() {
+        //throw("Abstract method can't be called");  
+    };
+    
     Shape.prototype.setRenderAttribs = function(attr) {
         throw("Abstract method can't be called");
     };  
@@ -428,9 +435,9 @@
         lineMaterial = new THREE.LineBasicMaterial({color: new THREE.Color(this.color).getHex()});
         lineMesh = new THREE.Line(lineGeometry, lineMaterial);
         lineMesh.name = "child" + this.getID();
-        
-        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));       
+
+        let p1 = createPoint3D(point3DSize, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(point3DSize, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));       
         
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
@@ -505,23 +512,44 @@
         let lambda = this.cnvW + this.cnvH, points = this.points;
         let prevp1 = transformProps.prevp1, prevp2 = transformProps.prevp2;
         if (this.rotatable && transformProps.p1) {
-            points[0].set(mmove.x, mmove.y);
-            points[2].set(mmove.x - lambda*(mmove.x - prevp2.x), mmove.y - lambda*(mmove.y - prevp2.y));
-            points[3].set(mmove.x + lambda*(mmove.x - prevp2.x), mmove.y + lambda*(mmove.y - prevp2.y));    
+            if (points[0].isOnBoundary) {
+                points[2].set(points[1].x + lambda*(points[1].x - points[0].x), points[1].y + lambda*(points[1].y - points[0].y));
+                points[3].set(points[1].x - lambda*(points[1].x - points[0].x), points[1].y - lambda*(points[1].y - points[0].y));     
+            } else {
+                points[0].set(mmove.x, mmove.y);
+                points[2].set(mmove.x - lambda*(mmove.x - prevp2.x), mmove.y - lambda*(mmove.y - prevp2.y));
+                points[3].set(mmove.x + lambda*(mmove.x - prevp2.x), mmove.y + lambda*(mmove.y - prevp2.y)); 
+            }  
         }
-        if (this.rotatable && transformProps.p2) { 
-            points[1].set(mmove.x, mmove.y);
-            points[2].set(mmove.x + lambda*(mmove.x - prevp1.x), mmove.y + lambda*(mmove.y - prevp1.y));
-            points[3].set(mmove.x - lambda*(mmove.x - prevp1.x), mmove.y - lambda*(mmove.y - prevp1.y));    
+        if (this.rotatable && transformProps.p2) {
+            if (points[1].isOnBoundary) {
+                points[2].set(points[1].x + lambda*(points[1].x - points[0].x), points[1].y + lambda*(points[1].y - points[0].y));
+                points[3].set(points[1].x - lambda*(points[1].x - points[0].x), points[1].y - lambda*(points[1].y - points[0].y));   
+            } else {
+                points[1].set(mmove.x, mmove.y);
+                points[2].set(mmove.x + lambda*(mmove.x - prevp1.x), mmove.y + lambda*(mmove.y - prevp1.y));
+                points[3].set(mmove.x - lambda*(mmove.x - prevp1.x), mmove.y - lambda*(mmove.y - prevp1.y));
+            }            
         }
+        this.updateBoundaryPoints();
         if (this.translatable && transformProps.translating) {
             let diff = mmove.sub(mdown);
             this.translate(diff);
             mdown.set(mmove.x, mmove.y);
-        }
+        }       
         
         this.transformIn_3D();
         this.updateMeasureTexts();
+    };
+    
+    Line.prototype.updateBoundaryPoints = function() {
+        let points = this.points;
+        let lambda = points[1].sub(points[0]).length();
+        //log(lambda)
+        for (let i = 4; i < points.length; i++) {
+            //this.points[i].set( points[1].x + (points[i].x - points[0].x), points[0].y + (points[i].y - points[0].y) )
+            //log(this.points[i].x, this.points[i].y)
+        }
     };
     
     Line.prototype.contains = function(v) {
@@ -637,8 +665,8 @@
         parent = new THREE.Object3D();
         parent.add(rayMesh);
         rayMesh.name = "child" + this.getID();
-        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(4, new THREE.Vector3(this.points[2].x - this.cnvW/2, 0, this.points[2].y - this.cnvH/2));
+        let p1 = createPoint3D(point3DSize, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(point3DSize, new THREE.Vector3(this.points[2].x - this.cnvW/2, 0, this.points[2].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[2].getID();
         parent.add(p1); parent.add(p2);
@@ -695,13 +723,22 @@
         let lambda = this.cnvW + this.cnvH;
         let prevp1 = transformProps.prevp1, prevp2 = transformProps.prevp2;
         if (transformProps.v1) {
-            points[0].set(mmove.x, mmove.y);
-            points[1].set(mmove.x - lambda*(mmove.x - prevp2.x), mmove.y - lambda*(mmove.y - prevp2.y));
+            if (points[0].isOnBoundary) {
+                points[1].set(points[0].x - lambda*(points[0].x - prevp2.x), points[0].y - lambda*(points[0].y - prevp2.y));
+            } else {
+                points[0].set(mmove.x, mmove.y);
+                points[1].set(mmove.x - lambda*(mmove.x - prevp2.x), mmove.y - lambda*(mmove.y - prevp2.y));
+            }
         }
         if (transformProps.p2) {
-            points[2].set(mmove.x, mmove.y);
-            points[1].set(mmove.x + lambda*(mmove.x - prevp1.x), mmove.y + lambda*(mmove.y - prevp1.y));
+            if (points[2].isOnBoundary) {
+                points[1].set(points[2].x + lambda*(points[2].x - points[0].x), points[2].y + lambda*(points[2].y - points[0].y));    
+            } else {
+                points[2].set(mmove.x, mmove.y);
+                points[1].set(mmove.x + lambda*(mmove.x - prevp1.x), mmove.y + lambda*(mmove.y - prevp1.y));   
+            }
         }
+        this.updateBoundaryPoints();
         if (this.translatable && transformProps.translating) {
             let diff = mmove.sub(mdown);										
             this.translate(diff);
@@ -709,6 +746,14 @@
         }
         this.transformIn_3D();
         this.updateMeasureTexts();
+    };
+    
+    Ray.prototype.updateBoundaryPoints = function() {
+        let points = this.points;
+        let lambda = points[1].sub(points[0]).length();
+        for (let i = 3; i < points.length; i++) {
+            
+        }
     };
     
     Ray.prototype.transformIn_3D = function() {
@@ -851,34 +896,10 @@
                 points[1].set(mmove.x, mmove.y);
             }
         } else {
-            //if (transformProps.v1) {
-            //    let ang = Math.atan2(mmove.y - points[1].y, mmove.x - points[1].x);
-            //    points[0].set(points[1].x + this.length * Math.cos(ang),
-            //                  points[1].y + this.length * Math.sin(ang));
-            //    let prop = this.geometryEngine.getShapesGroupTransformProps(points[0], false, this.connectedShapes);
-            //    for (let id in prop) {
-            //        if (id !== this.getID()) {
-            //            if (this.connectedShapes.has(id)) {
-            //                this.connectedShapes.get(id).transform(prop[id], mdown, points[0]);        
-            //            }
-            //        }
-            //    }
-            //}
-            //if (transformProps.v2) {
-            //    let ang = Math.atan2(mmove.y - points[0].y, mmove.x - points[0].x);
-            //    points[1].set(points[0].x + this.length * Math.cos(ang),
-            //                  points[0].y + this.length * Math.sin(ang));
-            //    let prop = this.geometryEngine.getShapesGroupTransformProps(points[1], false, this.connectedShapes);
-            //    for (let id in prop) {
-            //        if (id !== this.getID()) {
-            //            if (this.connectedShapes.has(id)) {
-            //                this.connectedShapes.get(id).transform(prop[id], mdown, points[1]);        
-            //            }
-            //        }
-            //    }
-            //}
+            
         }
         
+        this.updateBoundaryPoints();
         if (this.translatable && transformProps.translating) {
             let diff = mmove.sub(mdown);
             this.translate(diff);
@@ -886,6 +907,15 @@
         }
         this.transformIn_3D();
         this.updateMeasureTexts();
+    };
+    
+    Segment.prototype.updateBoundaryPoints = function() {
+        let points = this.points;
+        let lambda = 1;//points[1].sub(points[0]).length()
+        for (let i = 2; i < points.length; i++) {
+            //this.points[i].set( points[1].x + lambda*(points[1].x - points[0].x), points[0].y + lambda*(points[1].y - points[0].y) );
+           // log(this.points[i].x, this.points[i].y)
+        }
     };
     
     Segment.prototype.transformIn_3D = function() {
@@ -958,8 +988,8 @@
         segmentMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(segmentMesh);
-        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p1 = createPoint3D(point3DSize, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(point3DSize, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
@@ -1058,8 +1088,8 @@
         vectorMesh.name = "child" + this.getID();
         parent = new THREE.Object3D();
         parent.add(vectorMesh);
-        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        let p1 = createPoint3D(point3DSize, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        let p2 = createPoint3D(point3DSize, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
         p1.name = this.points[0].getID();
         p2.name = this.points[1].getID();
         parent.add(p1); parent.add(p2);
@@ -1273,12 +1303,12 @@
         let temp, parent = new THREE.Object3D(), p;
         
         polygonShape.moveTo(points[0].x - this.cnvW/2, points[0].y - this.cnvH/2);
-        p = createPoint3D(4, new THREE.Vector3(points[0].x - this.cnvW/2, 0, points[0].y - this.cnvH/2));
+        p = createPoint3D(point3DSize, new THREE.Vector3(points[0].x - this.cnvW/2, 0, points[0].y - this.cnvH/2));
         p.name = points[0].getID();
         parent.add(p);
         for (let i = 1; i < points.length; i++) {
             polygonShape.lineTo(points[i].x - this.cnvW/2, points[i].y - this.cnvH/2);
-            p = createPoint3D(4, new THREE.Vector3(points[i].x - this.cnvW/2, 0, points[i].y - this.cnvH/2));
+            p = createPoint3D(point3DSize, new THREE.Vector3(points[i].x - this.cnvW/2, 0, points[i].y - this.cnvH/2));
             p.name = points[i].getID();
             parent.add(p);
         }
@@ -1593,7 +1623,7 @@
         this.angle = angle || 2 * Math.PI;
         this.points.push(center);
         this.points.push(ndpoint);
-				this.position.set(center.x, center.y);
+		this.position.set(center.x, center.y);
     }
     
     Circle.count = 0;
@@ -1629,6 +1659,10 @@
         }
     };
     
+    Circle.prototype.getCenter = function() {        
+        return this.points[0];
+    };    
+    
     Circle.prototype.getFillColor = function() {        
         return this.fillColor;
     };
@@ -1648,8 +1682,10 @@
         
         for (let i = 0; i < this.points.length; i++) {
             let p = this.container3.getObjectByName(this.points[i].getID());
-            let pos = toScreenXY(p.position, this.cnvW, this.cnvH, this.camera);
-            this.cnv2DOverlayContext.fillText(this.points[i].getLetter(), pos.x, pos.y - 5);   
+            if (p) {        
+                let pos = toScreenXY(p.position, this.cnvW, this.cnvH, this.camera);
+                this.cnv2DOverlayContext.fillText(this.points[i].getLetter(), pos.x, pos.y - 5);          
+            }
         }
     };
     
@@ -1666,11 +1702,19 @@
         let circleMesh = new THREE.Mesh(circleGeometry, mat);
         circleMesh.name = "child" + this.getID();
         circleMesh.position.set(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2);
-        let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
-        p1.name = this.points[0].getID();
-        let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
-        p2.name = this.points[1].getID();
-        parent.add(p1); parent.add(p2);
+        
+        //let p1 = createPoint3D(4, new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2));
+        //p1.name = this.points[0].getID();
+        //let p2 = createPoint3D(4, new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2));
+        //p2.name = this.points[1].getID();
+        //parent.add(p1); parent.add(p2);
+        
+        for (let i = 0; i < this.points.length; i++) {
+            let p = createPoint3D(point3DSize, new THREE.Vector3(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2));
+            p.name = this.points[i].getID();
+            parent.add(p);                        
+        }
+        
         parent.add(circleMesh);
         parent.name = this.getID();
         this.container3 = parent;
@@ -1702,6 +1746,9 @@
             ndpoint.render();
         }
         center.render();
+        for (let i = 2; i < this.points.length; i++) {
+            this.points[i].render();
+        }
         if (this.showRadius) {
             ctx.moveTo(center.x, center.y);
             ctx.lineTo(ndpoint.x, ndpoint.y);
@@ -1711,17 +1758,28 @@
     };
     
     Circle.prototype.pointsHave = function(transformProps, p) {
-        let id = this.getID(), center = this.points[0], ndpoint = this.points[1];
+        let id = this.getID(), center = this.points[0], ndpoint = this.points[1];        
+        for (let i = 2; i < this.points.length; i++) {
+            let _p = this.points[i];
+            if (_p.contains(p)) {
+                transformProps[id] = {};
+                transformProps[id].index = i;
+                return true;
+            }   
+        }
+        
         if (center.contains(p)) {
             transformProps[id] = {};
             transformProps[id].center = 1;
             return true;
         }
+        
         if (ndpoint.contains(p)) {
             transformProps[id] = {};
             transformProps[id].ndpoint = 1;
             return true;
         }
+        
         return false;
     };
     
@@ -1732,12 +1790,13 @@
         }  
         if (transformProps.center) {
             center.set(mmove.x, mmove.y);
-            this.R = mmove.sub(ndpoint).length();
+            this.R = mmove.sub(ndpoint).length();           
         }
         if (transformProps.ndpoint) {
             ndpoint.set(mmove.x, mmove.y);
             this.R = ndpoint.sub(center).length();
         }
+        this.updateBoundaryPoints();
         if (this.translatable && transformProps.translating && this.fillColor) {
             let diff = mmove.sub(mdown);	
             this.translate(diff);
@@ -1747,14 +1806,25 @@
         this.updateMeasureTexts();
     };
     
+    Circle.prototype.updateBoundaryPoints = function() {
+        let center = this.points[0], ndpoint = this.points[1];
+        for (let i = 2; i < this.points.length; i++) {
+            let alpha = Math.atan2( this.points[i].y - center.y, this.points[i].x - center.x );
+            this.points[i].set(center.x + this.R * Math.cos(alpha), center.y + this.R * Math.sin(alpha));
+        }
+    };
+    
     Circle.prototype.transformIn_3D = function() {
         if (!this.container3) {
             return;
         }
         let center = this.points[0];
+        //log(this.points, this.container3);
         for (let i = 0; i < this.points.length; i++) {
             let p = this.container3.getObjectByName(this.points[i].getID());
-            p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
+            if (p) {
+                p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
+            }
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
         sh.geometry = new THREE.CircleGeometry(this.R, 64);
@@ -1783,7 +1853,8 @@
     Circle.prototype.onCurve = function(boundaryPoint, v) {
         let center = this.points[0], ndpoint = this.points[1];
         let dx = v.x - center.x,
-            dy = v.y - center.y, EPS = 1500;
+            dy = v.y - center.y, EPS = 2000;
+            
         if ( Math.abs(Math.floor(dx*dx + dy*dy) - Math.floor(this.R*this.R)) < EPS ) {
             boundaryPoint.p = v;
             return true;
@@ -1920,13 +1991,16 @@
     
     Point.prototype.projectAndDrawLetters = function() {
         if (this.camera && this.letter !== "") {
-            let pos = toScreenXY(this.scene.getObjectByName(this.getID()).position, this.cnvW, this.cnvH, this.camera);
-            this.cnv2DOverlayContext.fillText(this.letter, pos.x, pos.y - 5);       
+            let obj = this.scene.getObjectByName(this.getID());
+            if (obj) {
+                let pos = toScreenXY(obj.position, this.cnvW, this.cnvH, this.camera);
+                this.cnv2DOverlayContext.fillText(this.letter, pos.x, pos.y - 5);       
+            }
         }
     };
     
     Point.prototype.createMeshFromThis = function() {
-        let point3D = createPoint3D(10, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
+        let point3D = createPoint3D(point3DSize, new THREE.Vector3(this.x - this.cnvW/2, 0, this.y - this.cnvH/2));
         point3D.name = this.getID();
         this.scene.add(point3D);
         return point3D;

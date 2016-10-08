@@ -99,6 +99,16 @@
         return false;
     };
     
+     //  returns first founded shape where point p is one of the boundary points of it, false if no such shape found
+    GeometryEngine.prototype.onAnyShapesBoundary = function(p) {
+        for (let entry of this.shapes) {
+            if (!entry[1].pointsHave({}, p) && (entry[1].boundaryContains([], p) || entry[1].onCurve && entry[1].onCurve({}, p) )) {
+                return entry[1];
+            }
+        }
+        return false;
+    };
+    
     //  checks only if point p is inside of any shape,  false if no such shape found
     GeometryEngine.prototype.insideAnyShape = function(p) {
         for (let entry of this.shapes) {
@@ -153,11 +163,22 @@
             let pickedShape = this.shapes.get(pickedID);
             if (pickedShape) {
                 pickedShape.transform(transformProps[pickedID], mdown, mmove);
-                if (transformProps[pickedID].translating) {
-                    pickedShape.transformConnectedShapes(mdown, mmove); //  consider translating as well
+                
+                if (transformProps[pickedID].translating || pickedShape.boundaryContainsOtherPoints) {
+                    pickedShape.transformConnectedShapes(mdown, mmove);     //  consider translating as well
                 }
+                
                 pickedShape.advancedTransform(mdown, mmove);
-                pickedShape.updateMidPoints(mdown, mmove);  //  save mid points as mid points when transforming
+                pickedShape.updateMidPoints(mdown, mmove);                  //  save mid points as mid points when transforming
+                pickedShape.points.forEach(function(p) {
+                    if (p.isOnBoundary) {
+                        //log(p.getID())
+                        p.connectedShapes.forEach(function(sh) {
+                            sh.updateBoundaryPoints();
+                            sh.transformConnectedShapes(mdown, mmove);
+                        });
+                    }
+                });
             }
         }
     };

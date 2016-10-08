@@ -7,6 +7,7 @@
 
     const radToDeg = 180 / Math.PI;
     const degToRad = Math.PI / 180;
+    const point3DSize = 10;
     
     /**
      *  @author: Aram Gevorgyan
@@ -589,7 +590,8 @@
         getPickedObjects3D: getPickedObjects3D,
         planeThrou3Points: planeThrou3Points,
         segment3D: segment3D,
-        circle3D: circle3D
+        circle3D: circle3D,
+        point3DSize: point3DSize
     };
 
 })(jQuery, THREE, DSSGeometry);
