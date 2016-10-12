@@ -680,11 +680,12 @@
         }        
         var p1 = this.container3.getObjectByName(this.points[0].getID());
         var p2 = this.container3.getObjectByName(this.points[1].getID());
-        let pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);
-       
-        this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y - 5);
-        pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
-        this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y - 5 );
+        if (p1 && p2) { 
+            let pos = toScreenXY(p1.position, this.cnvW, this.cnvH, this.camera);       
+            this.cnv2DOverlayContext.fillText(this.points[0].getLetter(), pos.x, pos.y - 5);
+            pos = toScreenXY(p2.position, this.cnvW, this.cnvH, this.camera);
+            this.cnv2DOverlayContext.fillText(this.points[1].getLetter(), pos.x, pos.y - 5 );   
+        }
     };
     
     Line.prototype.createMeshFromThis = function() {
@@ -1499,12 +1500,17 @@
             return;
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
+        let helper = this.container3.getObjectByName("polygonEdgesHelper");        
+        this.container3.remove(helper);
+        
         for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x - this.cnvW/2;
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
             let p = this.container3.getObjectByName(this.points[i].getID());
-            p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
+            p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2); 
         }
+        helper = new THREE.EdgesHelper( sh, 0x000000 ); helper.name = "polygonEdgesHelper";
+        this.container3.add(helper);
         sh.geometry.verticesNeedUpdate = true;
     };
     
@@ -1561,12 +1567,13 @@
     Polygon.prototype.projectAndDrawLetters = function() {
         if (!this.container3) {
             return;
-        }
-        
+        }        
         for (let i = 0; i < this.points.length; i++) {
             let p = this.container3.getObjectByName(this.points[i].getID());
-            let pos = toScreenXY(p.position, this.cnvW, this.cnvH, this.camera);
-            this.cnv2DOverlayContext.fillText(this.points[i].getLetter(), pos.x, pos.y - 5);   
+            if (p) {            
+                let pos = toScreenXY(p.position, this.cnvW, this.cnvH, this.camera);
+                this.cnv2DOverlayContext.fillText(this.points[i].getLetter(), pos.x, pos.y - 5);       
+            }
         }
     };
     
@@ -1594,7 +1601,11 @@
         let hexColor = new THREE.Color(this.renderParams.fillColor).getHex();
         let polygonMesh = new THREE.Mesh(polygonGeom, new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide }));
         polygonMesh.name = "child" + this.getID();
+        let helper = new THREE.EdgesHelper( polygonMesh, 0x000000 );
+        helper.position.set(polygonMesh.x, polygonMesh.y, polygonMesh.z);
+        helper.name = "polygonEdgesHelper";
         parent.add(polygonMesh);
+        parent.add(helper);
         parent.name = this.getID();
         this.container3 = parent;
         this.scene.add(parent);
@@ -1833,12 +1844,17 @@
             return;
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
+        let helper = this.container3.getObjectByName("polygonEdgesHelper");        
+        this.container3.remove(helper);
+        
         for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].x = this.points[i].x - this.cnvW/2;
             sh.geometry.vertices[i].z = this.points[i].y - this.cnvH/2;
             let p = this.container3.getObjectByName(this.points[i].getID());
             p.position.set(this.points[i].x - this.cnvW/2, 0, this.points[i].y - this.cnvH/2);
         }
+        helper = new THREE.EdgesHelper( sh, 0x000000 ); helper.name = "polygonEdgesHelper";
+        this.container3.add(helper);
         sh.geometry.verticesNeedUpdate = true;
     };
     
@@ -1985,7 +2001,11 @@
             parent.add(p);                        
         }
         
-        parent.add(circleMesh);
+        let helper = new THREE.EdgesHelper( circleMesh, 0x000000 );
+        helper.position.set(circleMesh.x, circleMesh.y, circleMesh.z);
+        helper.name = "circleMeshHelper";
+        
+        parent.add(circleMesh); parent.add(helper);
         parent.name = this.getID();
         this.container3 = parent;
         this.scene.add(parent);
@@ -2096,12 +2116,21 @@
             }
         }
         let sh = this.container3.getObjectByName("child" + this.getID());
+        let helper = this.container3.getObjectByName("circleMeshHelper");
+        if (helper) {
+            this.container3.remove(helper);
+        }
         sh.geometry = new THREE.CircleGeometry(this.R, 64);
         for (let i = 0; i < sh.geometry.vertices.length; i++) {
             sh.geometry.vertices[i].z = sh.geometry.vertices[i].y;
             sh.geometry.vertices[i].y = 0;
         }
-        sh.position.set(center.x - this.cnvW/2, 0, center.y- this.cnvH/2)
+        sh.position.set(center.x - this.cnvW/2, 0, center.y- this.cnvH/2);
+        
+        helper = new THREE.EdgesHelper( sh, 0x000000 );
+        helper.position.set(sh.x, sh.y, sh.z);
+        helper.name = "circleMeshHelper";
+        this.container3.add(helper);
         sh.geometry.verticesNeedUpdate = true;
     };
     

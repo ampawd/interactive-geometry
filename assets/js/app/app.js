@@ -573,6 +573,7 @@
                 }
 			}
 			
+			updateCoordSystemNumbers(cnvParams);
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 			shapes.clear();
 			shapes_3D.clear();
