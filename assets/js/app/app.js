@@ -34,6 +34,7 @@
 		Point = Global.shapes.Point,
 		Text2d = Global.shapes.Text2d,
 		createCoordinateSystem = Global.shapes.createCoordinateSystem,
+		updateCoordSystemNumbers = Global.shapes.updateCoordSystemNumbers,
 		Vec2 = Global.math.Vec2,
 		GeometryEngine = Global.engine.GeometryEngine,
 		shapeConstructorFactory = Global.tools.shapeConstructorFactory;
@@ -56,8 +57,7 @@
 		
 		cnvParams.cnv2DOverlay = $("#canvas2DOverlay");
 		cnvParams.cnv2DOverlayContext = cnvParams.cnv2DOverlay[0].getContext('2d');
-		
-		cnvParams.historyIndex = 0;
+
 		uiParams.topTools = $('.top-tool');
 		uiParams.subTools = $('.sub-tools');
 		uiParams.subTool = $('.sub-tool');
@@ -67,8 +67,6 @@
 			  + parseInt(uiParams.topToolsContainer.css("padding-top")) + parseInt(uiParams.topToolsContainer.css("padding-bottom"));
 			  
 		uiParams.reloadBtn = $(".reloadBtn");
-		//uiParams.undoBtn = $(".undoBtn");
-		//uiParams.redoBtn = $(".redoBtn");
 		uiParams._3dviewCheckBox = $('#3dview-checkbox');
 		uiParams.projectionSelect = $('#projection_select');
 		uiParams._3DShapesTools = $("._3DShape");
@@ -92,7 +90,7 @@
 			theta:	   -15,	//	-15
 			phim:	   0,
 			thetam:	   0,
-			fov:	   55
+			fov:	   53
 		};
 	}
 	
@@ -114,8 +112,7 @@
 
 			cameraParams.newTarget.set(-cnvParams.camera.position.x, -cnvParams.camera.position.y, -cnvParams.camera.position.z);
 			cnvParams.camera.lookAt(cameraParams.newTarget);
-			cnvParams.camera.updateProjectionMatrix();
-			
+			cnvParams.camera.updateProjectionMatrix();			
 			Shape.prototype.camera = cnvParams.camera;
 		};
 	}
@@ -142,27 +139,15 @@
 		
 		cnvParams.cnv2DOverlay.attr("width", cnv3DWidth);
 		cnvParams.cnv2DOverlay.attr("height", cnvParams.h);
-		cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});
-		
-		let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678));
-		coordSystem.name = "coordSystem";
-		
+		cnvParams.cnv2DOverlay.css({"left": parseFloat($(cnvParams.renderer.domElement).css("margin-left")), "top" : uiParams.topToolsContainerFullHeight});		
+				
 		cameraParams.light1 = new THREE.DirectionalLight(0xffffff, 0.3);
 		cameraParams.light1.name = "light1";
 		cameraParams.light1.position.set(500, 500, 100);
 		
 		if (cnvParams.scene.getObjectByName("light1") === undefined) {
 			cnvParams.scene.add(cameraParams.light1);    
-        }
-		
-		//cameraParams.light2 = new THREE.DirectionalLight(0xffffff, 0.8);
-		//cameraParams.light2.name = "light2";
-		//cameraParams.light2.position.set(-500, 500, -700);			
-		//cnvParams.scene.add(cameraParams.light2);
-
-		if (cnvParams.scene.getObjectByName("coordSystem") === undefined) {
-			cnvParams.scene.add(coordSystem);   
-        }
+        }		
 		
 		//depthWrite: false
 		let xzPlaneGeom = new THREE.PlaneBufferGeometry(2*cnv3DWidth - 100, 2*cnv3DWidth - 100);
@@ -182,8 +167,14 @@
 		
 		prepare3DShapes();
 		updateCamera();
-		create3DInteractivities();	
-
+		create3DInteractivities();
+		
+		let coordSystem = createCoordinateSystem(cnv3DWidth, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0x444678, 0x444678, 0x444678), cnvParams);
+		coordSystem.name = "coordSystem";
+		if (cnvParams.scene.getObjectByName("coordSystem") === undefined) {
+			cnvParams.scene.add(coordSystem);   
+        }
+		updateCoordSystemNumbers(cnvParams);
 		cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);			//	initial rendering
     }
 	
@@ -206,6 +197,8 @@
 			cameraParams.thetam = cameraParams.theta;
 			cameraParams.phim = cameraParams.phi;						
 			let onmmove = function(e) {
+				cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+				
 				cameraParams.mmove.set(e.clientX - cnvParams.w - cnvParams.cnvOffsetX - 5, e.clientY - cnvParams.cnvOffsetY);
 			
 				cameraParams.theta = -(cameraParams.mmove.x - cameraParams.mdown.x) * 0.2 + cameraParams.thetam;
@@ -213,8 +206,8 @@
 				cameraParams.phi = Math.min( 90, Math.max( 0, cameraParams.phi ) );
 				
 				updateCamera();
+				updateCoordSystemNumbers(cnvParams);
 				
-				cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 				shapes.forEach(function(shape) {
 					if (shape.className != "Text2d") {
 						shape.projectAndDrawLetters(); 
@@ -356,10 +349,17 @@
 				cameraParams.distance = cnvParams.camera.position.length();
 			}
 			
+			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			updateCamera();
+			updateCoordSystemNumbers(cnvParams);
+			shapes.forEach(function(shape) {
+				if (shape.className != "Text2d") {
+					shape.projectAndDrawLetters(); 
+				}
+			});
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 		});
-		
+	
 		//	spectrum events handling
 		$("#selected-shape-colorpicker").spectrum({
 			color: "#000",
@@ -393,6 +393,7 @@
 					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
 					if (cnvParams.selectedShape.className !== "Text2d") {
 						$("#selected-shape-opacity-amount").val(ui.value);
+						//log( (ui.value) )
 						cnvParams.selectedShape.setOpacity(parseFloat(ui.value));    
 					} else {
 						//	...
@@ -546,6 +547,11 @@
 				let helpText = $("." + uiParams.activeSubToolName).find(".tool-help").html();
 				defTool.parent().find(".active-subtool-help").html(helpText); 
 			});
+			shapes.forEach(function(shape) {
+				if (shape.className != "Text2d") {
+					shape.projectAndDrawLetters(); 
+				}
+			});
 		});
 	}
 
@@ -585,6 +591,7 @@
 		mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
 		cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);		
 		geometryEngine.emphasizeShapes(mmove);
+		updateCoordSystemNumbers(cnvParams);
 		renderShapes();
 	}
 	
@@ -600,7 +607,7 @@
 		if (!shapeConstructor) {
 			log("no such shape's constructor exists");
 			return;
-		}
+		}		
 		
 		cnvParams.cnv.mousedown(function(e) {
 			if (toolName === "_3DShape" || toolName === "surfaces") return;
@@ -617,7 +624,9 @@
 				cnvParams.cnv.mousemove(function(e) {
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);		
 					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);					
-					geometryEngine.emphasizeShapesPoints(mmove);					
+					geometryEngine.emphasizeShapesPoints(mmove);
+					updateCoordSystemNumbers(cnvParams);
+					
 					shapeParts = shapeConstructor.processConstruction(e);
 					renderShapes();
 					if (shapeParts) {
@@ -721,6 +730,7 @@
 
 			shapeParts = shapeConstructor.processConstruction(e);
 			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+			updateCoordSystemNumbers(cnvParams);
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
         }
 	}
@@ -767,17 +777,20 @@
 				cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 				renderShapes();
 			}
-			//log(cnvParams.selectedShape)
+			
 			if (!useOldTransformProps) {                	
 				transformProps = geometryEngine.getShapesGroupTransformProps(mdown, true, connectedShapesGroup);
 			}
 			
 			if (!$.isEmptyObject(transformProps)) {
-				cnvParams.cnv.css({"cursor": "pointer"});
+				if (cnvParams.selectedShape && cnvParams.selectedShape.opacity) {
+					cnvParams.cnv.css({"cursor": "pointer"});    
+				}
 				cnvParams.cnv.mousemove(function(e) {
 					mmove.set(e.clientX - cnvParams.cnvOffsetX, e.clientY - cnvParams.cnvOffsetY);
 					cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 					cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
+					updateCoordSystemNumbers(cnvParams);
 					geometryEngine.transformShapes(transformProps, mdown, mmove);
 					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
