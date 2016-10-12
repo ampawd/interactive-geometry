@@ -373,6 +373,7 @@
 						fillColor: color.toHexString(),
 						lineWidth: cnvParams.selectedShape.getBoundaryWidth()
 					});
+					updateCoordSystemNumbers(cnvParams);
 					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
 				}
@@ -398,6 +399,7 @@
 					} else {
 						//	...
 					}
+					updateCoordSystemNumbers(cnvParams);
 					cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 					renderShapes();
 				}			
