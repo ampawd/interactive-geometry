@@ -245,33 +245,31 @@
      */
     GeometryEngine.prototype.emphasizeShapes = function(p) {
         for (let entry of this.shapes) {
-			if (entry[1].className !== "Text2d") {
-                
+            if (entry[1].className !== "Text2d") {                
                 if (this.cnvParams.selectedShape && this.cnvParams.selectedShape.getID() === entry[0]) {
                     continue;
                 }
                 
-				if (entry[1].className !== "Point") {
-					if (entry[1].contains(p)) {                        
-						entry[1].setBoundaryWidth( 2 );					
-					} else {
-						entry[1].setBoundaryWidth( 1 );
-					}
-					for (let i = 0; i < entry[1].points.length; i++) {
-						entry[1].points[i].setBoundaryWidth(2);
-					}
-				}
+                if (entry[1].className !== "Point") {
+                    if (entry[1].contains(p)) {                        
+                        entry[1].setBoundaryWidth( 2 );					
+                    } else {
+                        entry[1].setBoundaryWidth( 1 );
+                    }
+                    for (let i = 0; i < entry[1].points.length; i++) {
+                        entry[1].points[i].setBoundaryWidth(2);
+                    }
+                }
                 
-				for (let i = 0; i < entry[1].points.length; i++) {
-					if (entry[1].points[i].contains(p)) {
-						entry[1].points[i].setBoundaryWidth(4);
-						entry[1].className !== "Point" && entry[1].setBoundaryWidth( 1 );
-					} else {
-						entry[1].points[i].setBoundaryWidth(2);
-					}
-				}
-                
-			}
+                for (let i = 0; i < entry[1].points.length; i++) {
+                    if (entry[1].points[i].contains(p)) {
+                        entry[1].points[i].setBoundaryWidth(4);
+                        entry[1].className !== "Point" && entry[1].setBoundaryWidth( 1 );
+                    } else {
+                        entry[1].points[i].setBoundaryWidth(2);
+                    }
+                }                
+            }
         }
     };
     
