@@ -4,6 +4,11 @@
 
 ;(function($, THREE, Global) {
 	
+	/**
+	 * @function log - basic shorthand for console.log
+	 * @param {Object} a - first loging argument
+	 * @param {Object} b  second loging argument
+	 */
 	function log(a, b) {
 		if (!a && !b) {
 			return;
@@ -17,10 +22,10 @@
 		}
 	}
 	
-	function getPropsCountOf(object) {
-		return Object.keys(object).length;
-	}
-	
+	/**
+	 * @function clone - deeply clones object
+	 * @returns {Object} cloned one
+	 */
 	function clone(obj) {
 		if (null == obj || "object" != typeof obj) return obj;
 		let copy = obj.constructor();
@@ -32,15 +37,25 @@
 		return copy;
 	}
 	
+	/**
+	 * @function getPropsCountOf - returns count of the object properties
+	 * @param {Object} object - object to count number of properties for
+	 * @returns {Number} number of properties
+	 */
+	function getPropsCountOf(object) {
+		return Object.keys(object).length;
+	}
+
+	/**
+	 * @function getActualWinWidth - returns window width in a cross browser manner
+	 */
 	function getActualWinWidth() {
-		var actualWidth = window.innerWidth ||
-						document.documentElement.clientWidth ||
-						document.body.clientWidth ||
-						document.body.offsetWidth;
-		return actualWidth;
+		return window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth || document.body.offsetWidth;
 	}
 	
-	//	get correct requestAnimationFrame
+	/**
+	 * @function anonymus function - sets up correct requestAnimationFrame for all browsers
+	 */
 	(function() {
 		var lastTime = 0;
 		var vendors = ['ms', 'moz', 'webkit', 'o'];
@@ -54,22 +69,21 @@
 			window.requestAnimationFrame = function(callback, element) {
 				var currTime = new Date().getTime();
 				var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-				var id = window.setTimeout(function() { callback(currTime + timeToCall); },
-					timeToCall);
+				var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
 				lastTime = currTime + timeToCall;
 				return id;
 			};
 		}
 		if (!window.cancelAnimationFrame) {
 			window.cancelAnimationFrame = function(id) {
-					clearTimeout(id);
+				clearTimeout(id);
 			}
 		}
 	}());
 	
 	Global.utils = Global.utils || {
 		log : log,
-		clone : clone,
+		clone: clone,
 		getPropsCountOf: getPropsCountOf,
 		getActualWinWidth: getActualWinWidth
 	};
