@@ -4,21 +4,20 @@
 
 ;(function($, THREE, Global) {
     let log = Global.utils.log;
-
+    
     const radToDeg = 180 / Math.PI;
     const degToRad = Math.PI / 180;
     const point3DSize = 10;
     
     /**
-     *  @author: Aram Gevorgyan
-     *  @description: linear algebra library, represents classes for Vec2, Vec3 vectors and 2, 3 dimensional square matrices
-     *  plus some often used algorithms
-     *  @creation date: 15/11/2015 
+     * @author: Aram Gevorgyan
+     * @description: linear algebra library, represents classes for Vec2, Vec3 vectors and 2, 3 dimensional square matrices
+     * plus some often used algorithms
+     * @creation date: 15/11/2015 
      */
     
     /**
-     *  Vec2 class
-     *  2 dimensional affine vector
+     * @constructor Vec2 - 2 dimensional affine vector
      */
     function Vec2(x, y) {
         this.x = x || 0;
@@ -72,8 +71,7 @@
     
     
     /**
-     *  Vec3 class
-     *  3 dimensional affine vector
+     * @constructor Vec3 - 3 dimensional affine vector
      */
     function Vec3(x, y, z) {
         this.x = x;
@@ -133,8 +131,7 @@
     //  all matrices are stored in column-major order
     
     /**
-     *  Mat2 class
-     *  2x2 column-major matrix
+     * @constructor Mat2 - 2x2 column-major matrix
      */
     function Mat2(initMat) {
         this.elements = typeof initMat === 'undefined' ?
@@ -234,8 +231,7 @@
     
     
     /**
-     *  Mat3 class
-     *  3x3 column-major matrix
+     * @constructor Mat3 - 3x3 column-major matrix
      */
     function Mat3(initMat) {
         this.elements = !initMat?
@@ -469,16 +465,6 @@
         planeMesh.matrix.multiply(rotationWorldMatrix);
         planeMesh.rotation.setFromRotationMatrix(planeMesh.matrix);
         planeMesh.position.set(center.x, center.y, center.z);
-        //planeMesh.lookAt(normal)
-        
-        //planeGeom = new THREE.Geometry();
-        //planeGeom.vertices.push(v1, v2, v3);
-        //var face = new THREE.Face3(0, 1, 2);
-        //planeGeom.faces.push(face);            
-        //planeGeom.computeFaceNormals();
-        //planeGeom.computeVertexNormals();
-        //planeMat = new THREE.MeshBasicMaterial({color: 0x989898, side: THREE.DoubleSide});
-        //planeMesh = new THREE.Mesh(planeGeom, planeMat);
         
         return planeMesh;
     }

@@ -35,7 +35,7 @@
         }
         
         /**
-         * @property {String} className - name of the class, example: function Point() {...}, this.className === "Point" gets true
+         * @property {String} className - name of the class, example: function Point() {...}, this.className === "Point" is true
          */        
         this.className = this.constructor.name;
         
@@ -432,7 +432,7 @@
     
     /**
      * @function getOpacity - gets opacity value for this shape
-     * @returns {Number} opacity - opacity amount, 0 <= value <= 1
+     * @returns {Number} opacity - opacity amount, 0 <= opacity <= 1
      */
     Shape.prototype.getOpacity = function() {
         return this.opacity;
@@ -440,7 +440,7 @@
     
     
     /**
-     * @function createLetters - create letters for points for this shape
+     * @function createLetters - create letters on points for this shape
      */
     Shape.prototype.createLetters = function() {
         if (Shape.nextLetterIndex >= this.designations.length) {
@@ -458,7 +458,7 @@
     
     
     /**
-     * @function projectAndDrawLetters - projects 3D point to 2D to render letter on 2d overlay canvas
+     * @function projectAndDrawLetters - projects 3D point to 2D and render letters on a 2dOverlayCanvas
      */
     Shape.prototype.projectAndDrawLetters = function() {
         throw("Abstract method can't be called");  
@@ -466,7 +466,7 @@
     
     
     /**
-     * @function updateBoundaryPoints - keeps boundary points on this shape boundary
+     * @function updateBoundaryPoints - keeps boundary points of this shape on the boundary
      */
     Shape.prototype.updateBoundaryPoints = function() {
         //throw("Abstract method can't be called");  
@@ -532,7 +532,7 @@
     /**
      * @function boundaryContains - checks if point only is on the boundary of this shape
      * @param {Point} v - instance of a base class Shape (but in this case must be Point)
-     * @returns {Boolean} true if boundary contains false otherwise
+     * @returns {Boolean} true if boundary contains, false otherwise
      */
     Shape.prototype.boundaryContains = function(v) {
         throw("Abstract method can't be called");
@@ -540,9 +540,9 @@
     
     
     /**
-     * @function pointsHave - checks if point only is on the points already in the shape
+     * @function pointsHave - checks if point only is on the points in the shape
      * @param {Point} v - instance of a base class Shape (but in this case must be Point)
-     * @returns {Boolean} true if boundary contains false otherwise
+     * @returns {Boolean} true if any of the shapes' point contains, false otherwise
      */
     Shape.prototype.pointsHave = function(p) {
         throw("Abstract method can't be called");
@@ -550,7 +550,7 @@
     
     
     /**
-     * @function rotate - rotates the shape by alpha radians around vector v
+     * @function rotate - rotates the shape on a 2d plane by alpha radians around vector v
      * @param {Vec2} v - rotation vector
      * @param {Number} alpha - rotation angle in radians
      */
@@ -560,7 +560,7 @@
     
     
     /**
-     * @function translate - translates the shape by vector v
+     * @function translate - translates the shape by a vector v
      * @param {Vec2} v - translation vector
      */
     Shape.prototype.translate = function(v) {
@@ -569,7 +569,7 @@
     
     
     /**
-     * @function scale - scales the shape by vector v
+     * @function scale - scales the shape by a vector v
      * @param {Vec2} v - scale vector
      */
     Shape.prototype.scale = function(v) {
@@ -861,7 +861,7 @@
     
     
     /**
-     * @constructor Ray - 
+     * @constructor Ray - 2d ray shape on a plane
      * @param {Vec2} v1 - point the ray starts from
      * @param {Vec2} v2 - point of the ray infinity
      * @param {Vec2} p2 - second point on the ray
@@ -1019,8 +1019,7 @@
     };
     
     Ray.prototype.updateBoundaryPoints = function() {
-        //let points = this.points;
-        
+        //let points = this.points;        
     };
     
     Ray.prototype.transformIn_3D = function() {
@@ -1081,7 +1080,7 @@
     
     
     /**
-     * @constructor Segment - segment on a plane
+     * @constructor Segment - 2d segment shape on a plane
      * @param {Vec2} v1 - start point
      * @param {Vec2} v2 - end point
      * @param {String} sideColor - side color
@@ -1299,7 +1298,7 @@
     
     
     /**
-     * @constant Vector - Arrowed vector shape on a plane
+     * @constant Vector - 2d Arrowed vector shape on a plane
      * @param {Vec2} v1 - vector 1st point
      * @param {Vec2} v2 - vector 2nd point
      * @param {String} sideColor - side color
@@ -1334,7 +1333,7 @@
         
         this.color = attrs.strokeStyle;
         if (this.container3) {
-            this.container3.remove("child" + this.getID());     //  because of three.js framework design ArrowHelper can't be updated - potential performance bottletneck here are unavoidable
+            this.container3.remove("child" + this.getID());     //  because of ArrowHelper design it can't be updated - so potential performance bottletneck here are unavoidable
             let vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2), 
 					new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2), this.color, 70, 15);
             vectorMesh.name = "child" + this.getID();
@@ -1695,7 +1694,7 @@
     
     
     /**
-     * @constructor Triangle - 2d triangle on a plane
+     * @constructor Triangle - 2d triangle shape on a plane, child of the Polygon class
      * @param {Object Array} points - an array of triangle 3 points
      * @param {Object} renderParams - plain javascript hash, stores render params such as fill color, linewidth, side color
      */
@@ -1775,7 +1774,7 @@
     
     
     /**
-     * @constructor RegularPolygon - 2d regular polygon on a plane
+     * @constructor RegularPolygon - 2d regular polygon on a plane, child class of the Polygon
      * @param {Vec2} center - center point of regular polygon
      * @param {Number} n - number of polygon sides
      * @param {Number} a - length of the side
@@ -1903,7 +1902,7 @@
      * @constructor Circle - 2d circle on a plane
      * @param {Vec2} center - center point of the circle
      * @param {Number} R - circle's radius
-     * @param {Object} renderParams - plain javascript hash, stores render params such as fill color, linewidth, side color
+     * @param {Object} renderParams - plain javascript hash object, stores render params such as fill color, linewidth, side color
      * @param {Vec2} ndpoint - second point on the circle
      * @param {Number} angle - circle angle by default = 2 * PI
      */
@@ -2393,7 +2392,7 @@
     /**
      * @constructor Text2d - 2d text shape on a plane
      * @param {String} text - text as a string
-     * @param {String} font - font style
+     * @param {String} font - text font style
      * @param {Vec2} v - top left coordinates of text rectangle
      */
     function Text2d(text, font, v) {
@@ -2476,7 +2475,19 @@
         this.x = v.x;
         this.y = v.y;
     };
+    
+    
  
+    /**
+     * @function ArrowedVector - returns arrowed vector 3d shape using some of the THREE js library functionality
+     * @param {Object} from - THREE.Vector3 object, the vector begining point
+     * @param {Object} to - THREE.Vector3 object, the vector end point
+     * @param {Number} _headLength - arrow length
+     * @param {Number} _headWidth - arrow width
+     * @param {Boolean} addCircle - if true adds circle to the begining
+     * @param {Boolean} unit - if true makes vector unit
+     * @returns {Object} THREE.Object3D containing arrowed vector
+     */
     function ArrowedVector(from, to, color, _headLength, _headWidth, addCircle, unit) {
         let parent = new THREE.Object3D(),
             headLength = _headLength,
@@ -2492,13 +2503,20 @@
         return parent;
     }
     
-    function buildSegment(src, dst, colorHex, dashed) {
+    /**
+     * @function buildAxis - constructs one coordinate system axis
+     * @param {Object} src - THREE.Vector3 object, the axis begining point
+     * @param {Object} dst - THREE.Vector3 object, the axis end point
+     * @param {Boolean} dashed - if true makes axis dashed
+     * @returns {Object} THREE.Line or ArrowedVector as an axis
+     */
+    function buildAxis(src, dst, colorHex, dashed) {
         let geom = new THREE.Geometry(), mat, axis;	
         if (dashed) {
             mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 5 });
             geom.vertices.push(src.clone());
             geom.vertices.push(dst.clone());
-            geom.computeLineDistances();	//	This one is SUPER important, otherwise dashed lines will appear as simple plain lines	
+            geom.computeLineDistances();
             axis = new THREE.Line(geom, mat, THREE.LinePieces);
         } else {
             mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
@@ -2507,20 +2525,32 @@
         return axis;
     }
     
+    /**
+     * @function createCoordinateSystem - creates 3d coord system
+     * @param {Number} length - the length of each axis
+     * @param {Object} position - THREE.Vector3 object, position of the coord system origin in world coordinates
+     * @param {Object} colorVector - THREE.Vector3, color vector for axes
+     * @param {Object} cnvParams - plain hash object, stores both 2d and 3d canvas parameters including three.js renderer camera and scene
+     * @returns {Object} the axes grouped in THREE.Object3D container
+     */
     function createCoordinateSystem(length, position, colorVector, cnvParams) {
         let axes = new THREE.Object3D();		
-        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), colorVector.x,  false ) ); // +X
-        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), colorVector.x, false ) ); // -X
-        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), colorVector.y,  false ) ); // +Y
-        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, -length, 0 ), colorVector.y, false ) ); // -Y
-        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, length ), colorVector.z,  false ) ); // +Z
-        axes.add( buildSegment( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -length ), colorVector.z, false ) ); // -Z		
+        axes.add( buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( length, 0, 0 ), colorVector.x,  false ) ); // +X
+        axes.add( buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( -length, 0, 0 ), colorVector.x, false ) ); // -X
+        axes.add( buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, length, 0 ), colorVector.y,  false ) ); // +Y
+        axes.add( buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, -length, 0 ), colorVector.y, false ) ); // -Y
+        axes.add( buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, length ), colorVector.z,  false ) ); // +Z
+        axes.add( buildAxis( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, -length ), colorVector.z, false ) ); // -Z		
         axes.position.set(position && position.x || 0, position && position.y || 0, position && position.z || 0);
         
         updateCoordSystemNumbers(cnvParams, length);
         return axes;
     }
     
+    /**
+     * @function updateCoordSystemNumbers - updates coord system numbers on their ends
+     * @param {Object} cnvParams - plain hash object, stores both 2d and 3d canvas parameters including three.js renderer camera and scene
+     */
     function updateCoordSystemNumbers(cnvParams) {
         let length = cnvParams.w;
         cnvParams.camera.updateMatrixWorld();
@@ -2540,6 +2570,12 @@
         cnvParams.cnv2DOverlayContext.restore();
     }
     
+    /**
+     * @function createTextTHREE - creates text shape in 3d using THREE.js library functionality
+     * @param {String} text - text to be created as string
+     * @param {Number} size - font size of the text
+     * @returns {Object} - text as THREE.Mesh object
+     */
     function createTextTHREE(text, size) {
 		let textShapes = THREE.FontUtils.generateShapes( text,	{
 				'font': 		 'helvetiker',
@@ -2558,6 +2594,12 @@
 		return textMesh;
 	}
     
+    /**
+     * @function createPoint3D - creates 3d point using THREE.js functionality
+     * @param {Number} radius - point radius
+     * @param {Object} v - point coordinates in world space
+     * @returns {Object} point as THREE.Mesh (consisting of Sphere and lambert material)
+     */
     function createPoint3D(radius, v) {
         let point3DGeom = new THREE.SphereGeometry( radius, 32, 32 );
         let mat = new THREE.MeshLambertMaterial( {color: 0x000000} );
@@ -2567,24 +2609,22 @@
         return point3D;
     }
     
-    function toScreenXY(position, cnvW, cnvH, camera)  {
+    /**
+     * @function toScreenXY - projects 3D vector from world coordinates to screen space where origin is at (left, top) of the screen
+     * @param {Object} position - THREE.Vector3, the vector to project
+     * @param {Number} w - viewport width
+     * @param {Number} h - viewport height
+     * @param {Object} camera - an instance of any THREE.Camera base class
+     * @returns {Object} - plain javascript hash object with x, y props of projected point, {x: somevalue1, y: somevalue2}
+     */
+    function toScreenXY(position, w, h, camera)  {
         let pos = position.clone();
         let projScreenMat = new THREE.Matrix4();        
         projScreenMat.multiplyMatrices( camera.projectionMatrix, new THREE.Matrix4().getInverse(camera.matrixWorld) );
-        //console.info(camera.projectionMatrix.elements, camera.matrixWorld.elements)
         
         pos.applyProjection(projScreenMat);
-        let out = {x : (pos.x + 1) * cnvW / 2, y: (-pos.y + 1) * cnvH / 2 };
+        let out = {x : (pos.x + 1) * w / 2, y: (-pos.y + 1) * h / 2 };
         return out;
-    }
-    
-    function containsP(v, x, y) {
-        let dx = x - v.x,
-            dy = y - v.y;					
-        if ( dx*dx + dy*dy <= 100 ) {
-            return true;
-        }
-        return false;
     }
     
     Global.shapes = Global.shapes || {

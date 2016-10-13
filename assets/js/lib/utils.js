@@ -4,20 +4,6 @@
 
 ;(function($, THREE, Global) {
 	
-	Map.prototype.getLastKey = function() {
-		let keys = this.keys();
-		for (var ret of this) {}
-		return ret && ret[0];
-	};
-	
-	Map.prototype.copy = function() {
-		let ret = new Map();
-		for (let entry of this) {
-			ret.set(entry[0], entry[1]);
-		}
-		return ret;
-	};
-	
 	function log(a, b) {
 		if (!a && !b) {
 			return;

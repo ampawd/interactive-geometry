@@ -4,11 +4,53 @@
 // 1. Picking a point on a 3D object when constructing new 3D objects and plane surface
 
 /**
+ * @author: Aram Gevorgyan
+ * @description: Shape's construction
+ * the module/file consists of constructor functions and a shapeConstructorFactory
  * 
+ * The constructor functions implement an interface for constructing primitives by returning identical object
+ *
+ * example:
+ * 
+ * function getSomeShapeConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
+      // helper variables or functions needed to correctly construct a shape/primitive
+    
+      return {
+        initConstruction: function() {
+    
+        },
+        constructionReady: function() {
+            
+        },
+        constructionStarted: function() {
+            
+        },
+        processConstruction: function(e) {
+           
+        },
+        constructionEnding: function() {
+            
+        },
+        endConstruction: function() {                
+            
+        },
+        constructionNextStep: function() {
+            
+        }
+      };
+   }
+ *
+ *
+ * the returned object interface should be implemented for every geometry tool from the top panel,
+ * this is needed to keep shape's construction logic independent on the concrete shape type
+ * the returned object interface is being used in app.js file/module in the function : constructionLoop
+ *
+ * The shapeConstructorFactory function returns a concrete shape constructor depending on the toolName parameter passed in
  */
 
 ;(function($, THREE, Global) {
     
+    //  importing needed stuff
     let log = Global.utils.log,
         clone = Global.utils.clone,
         getPropsCountOf = Global.utils.getPropsCountOf,
@@ -38,10 +80,7 @@
         point3DSize = Global.math.point3DSize,
         GeometryEngine = Global.engine.GeometryEngine;
     
-    /**
-     *  @author: Aram Gevorgyan
-     *  @description: Shapes and tools constructors logic
-     */    
+       
     function getMeasuringConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let shape = 0,
             clicks = 0,
@@ -350,7 +389,6 @@
                         v1 = mdown.copy();
                         fixedLength = parseFloat(prompt("Enter segment length"));                        
                         if (isNaN(fixedLength) || fixedLength < 10) {
-                            //log("NAN");
                             return;
                         }
                         break;

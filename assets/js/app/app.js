@@ -6,16 +6,56 @@
 
 ;(function($, THREE, Global) {
 	
-	let cnvParams,
+	let
+		/**
+		 * @description - plain hash object, stores both 2d and 3d canvas parameters including three.js renderer camera and scene
+		 */
+		cnvParams,
+		
+		/**
+		 * @description - plain hash object, stores user interface parameters
+		 */
 		uiParams,
+		
+		/**
+		 * @description - plain hash object, stores only camera parameters
+		 */
 		cameraParams,
+		
+		/**
+		 * @function updateCamera - updates camera transformation (position and target vector)
+		 */
 		updateCamera,
+		
+		/**
+		 * Shapes {Object Map} - stores all 2d shapes as {key: shapeID => value: shapeInstance}
+		 */
 		shapes,
+		
+		/**
+		 * Shapes_3D {Object Map} - stores all 3d shapes as {key: shapeID => value: shapeInstance}
+		 */
 		shapes_3D,
-		deletedShapes,
+		
+		/**
+		 * percent {Number} - value in percentage - shows how much its needed to squeeze canvases width
+		 */
 		percent,
+		
+		/**
+		 * actualWindowWidth {Number} - actual window width
+		 */
 		actualWindowWidth,
+		
+		/**
+		 * windowHeight {Number} - window height
+		 */
 		windowHeight,
+		
+		/**
+		 * geometryEngine {Object} - an instance of GeometryEngine class
+		 * @see GeometryEngine - in engine.js
+		 */
 		geometryEngine,
 		
 		log = Global.utils.log,
@@ -39,7 +79,10 @@
 		GeometryEngine = Global.engine.GeometryEngine,
 		shapeConstructorFactory = Global.tools.shapeConstructorFactory;
 		
-	
+	/**
+	 * @function initParams - fills all params object with appropriate values,
+	 * initializes app width and camera parameters
+	 */
 	function initParams() {
 		percent = 5;
 		actualWindowWidth = getActualWinWidth();
@@ -86,21 +129,22 @@
 			newTarget: new THREE.Vector3(),
 			mdown:	   new THREE.Vector2(),
 			mmove: 	   new THREE.Vector2(),
-			phi:   	   25,	//	25
-			theta:	   -15,	//	-15
+			phi:   	   25,
+			theta:	  -15,
 			phim:	   0,
 			thetam:	   0,
 			fov:	   53
 		};
 	}
 	
+	/**
+	 * @function setUp3D - creates 3d canvas html element, sets up camera, renderer and updateCamera function
+	 */
 	function setUp3D() {
 		$(uiParams._3dviewCheckBox).attr("checked", false);
 		$("#render-canvases").append(cnvParams.renderer.domElement);
 		cnvParams.camera = new THREE.OrthographicCamera(-cnvParams.w, cnvParams.w, cnvParams.h, -cnvParams.h, -2000, 2000);
 		cnvParams.renderer.setSize(0, 0);
-		//cnvParams.renderer.sortObjects = false
-		//cnvParams.renderer.context.disable(cnvParams.renderer.context.DEPTH_TEST);
 		updateCamera = function() {
 			if (!cnvParams.camera) {
                 log("cnvParams.camera is falsy");
@@ -117,6 +161,9 @@
 		};
 	}
 	
+	/**
+	 * @function prepare3DShapes - creates THREE.Object3D objects for 2d shape and fills shapes_3D
+	 */
 	function prepare3DShapes() {
 		shapes.forEach(function(shape, shapeID) {
 			if (!shapes_3D.has(shapeID) && shape.className !== "Text2d") {
@@ -126,6 +173,10 @@
 		});
 	}
 	
+	/**
+	 * @function setUP3DView - sets everything needed for 3d stuff including light, 3d coord system, user input
+	 * @param cnv3DWidth {Number} - width of the 3d canvas
+	 */
 	function setUP3DView(cnv3DWidth) {
         if (uiParams.projectionSelect.val() === "persp") {
 			cnvParams.camera = new THREE.PerspectiveCamera(cameraParams.fov, cnv3DWidth/cnvParams.h, 1, 3000);
@@ -178,6 +229,9 @@
 		cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);			//	initial rendering
     }
 	
+	/**
+	 * @function create3DInteractivities - sets up mouse events for 3d canvas
+	 */
 	function create3DInteractivities() {
         cnvParams.cnv3D.off("mousedown");
 		cnvParams.cnv3D.off("mousemove");
@@ -234,6 +288,9 @@
 		$("#canvas2DOverlay").mousedown(onmousedown);
     }
 	
+	/**
+	 * @function deleteSelectedShape - deletes selected shape and its 3d analog
+	 */
 	function deleteSelectedShape() {
 		if (cnvParams.selectedShape) {
 			let selID = cnvParams.selectedShape.getID();
@@ -266,6 +323,10 @@
 		}
 	}
 	
+	/**
+	 * @function setUpGlobalEvents - sets up with handlers all other global events, like window resize,
+	 * 3dviewcheckbox click, projectionSelect change, spectrum color and opacity change events
+	 */
 	function setUpGlobalEvents() {
 		let factor = 2, cnv3DWidth;
 		$(window).resize(function() {
@@ -314,7 +375,7 @@
                         if (shapes.get(p3d.name).isOnBoundary) {
 							cnvParams.scene.remove( p3d );
 						}
-                    }					
+					}				
                 }
 			} else {
 				uiParams.projectionSelect.attr("disabled", true);
@@ -420,6 +481,10 @@
 		enableToolHelpNotesOnHover();
 	}
 	
+	
+	/**
+	 * @function enableToolHelpNotesOnHover - sets up explanation notes when hovering over the geometry tools from top tools panel
+	 */
 	function enableToolHelpNotesOnHover() {
 		let leftOffset = parseFloat($("#top-tools-container").css("margin-left"));
 		let topToolWidth = parseFloat($(".top-tool").outerWidth()) + $(".top-tool").length - 1;
@@ -446,10 +511,12 @@
 		});
     }
 	
+	/**
+	 * @function initShapes - initializes everything related to shapes
+	 */
 	function initShapes() {
 		shapes 		  = new Map();
 		shapes_3D	  = new Map();
-		deletedShapes = new Map();
 		Shape.prototype.ctx = cnvParams.ctx;
 		Shape.prototype.cnv = cnvParams.cnv;
 		Shape.prototype.cnvParams = cnvParams;
@@ -466,12 +533,20 @@
 		Shape.prototype.geometryEngine = new GeometryEngine();
 	}
 	
+	/**
+	 * @function initGeometryEngine - initializes everything related to geometry engine
+	 */
 	function initGeometryEngine() {
 		GeometryEngine.prototype.cnvParams = cnvParams;
 		GeometryEngine.prototype.shapes = shapes;
 		geometryEngine = new GeometryEngine();
 	}
 	
+	
+	/**
+	 * @function updateUI - updates selected state of the toolName
+	 * @param {String} toolName - name of the tool (move, line, point, circle, polygon etc)
+	 */
 	function updateUI(toolName) {
 		uiParams.topTools.removeClass("selected");
 		uiParams.subTools.css({"visibility" : "hidden"});		
@@ -479,11 +554,18 @@
 		$("." + toolName).find(".sub-tools").css({"visibility" : "visible"});
 	}
 	
+	
+	/**
+	 * @function resetUIToDefaults - resets top tools selected state to default (deselects everything previously selected)
+	 */
 	function resetUIToDefaults() {
 		uiParams.topTools.removeClass("selected");
 		uiParams.subTools.css({"visibility": "hidden"});
 	}
 	
+	/**
+	 * @function disableSelectedShapeAttribControls - disables (make unclickable) selected shape attributes (fillColor, opacity, id and delete button) controls
+	 */
 	function disableSelectedShapeAttribControls() {
 		$("#selected-shape").html("");
 		$("#selected-shape-colorpicker").spectrum('disable');
@@ -495,6 +577,9 @@
 		$("#selected-shape-delete-btn").attr('disabled', 'disabled');
 	}
 	
+	/**
+	 * @function enableSelectedShapeAttribControls - enables (make clickable) selected shape attributes (fillColor, opacity, id and delete button) controls
+	 */
 	function enableSelectedShapeAttribControls() {
 		$("#selected-shape").html(cnvParams.selectedShape.getID());
 		$("#selected-shape-colorpicker").spectrum('enable');
@@ -505,6 +590,9 @@
 		$("#selected-shape-delete-btn").removeAttr('disabled');	//	enable delete button
 	}
 	
+	/**
+	 * @function setUpTools - initializes click events for top tools and its sub tools, registering appropriate event handlers
+	 */
 	function setupTools() {
 		$(".buttons, .top-tool, .sub-tools").disableSelection();
 		uiParams.topTools.click(function(e) {
@@ -557,7 +645,11 @@
 		});
 	}
 
-	function setupHistory() {
+	/**
+	 * @function setupReload - registers click event on reload button click and clears canvas with 3d and 2d shapes,
+	 * setting everything up to default values
+	 */
+	function setupReload() {
 		uiParams.reloadBtn.click(function() {
 			cnvParams.ctx.clearRect(0, 0, cnvParams.w, cnvParams.h);
 			cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);	
@@ -579,7 +671,6 @@
 			cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
 			shapes.clear();
 			shapes_3D.clear();
-			deletedShapes.clear();
 			Line.count = Ray.count = Segment.count = Vector.count = Polygon.count = 
 			Triangle.count = RegularPolygon.count = Circle.count = Point.count = Text2d.count = 0;
 			Shape.nextLetterIndex = 0;
@@ -588,6 +679,10 @@
 		});
 	}
 	
+	/**
+	 * @function emphasizeShapes - emphasizes shapes or points or shape's points when mouse moving
+	 * @param {Object} e - event object of mousemove event
+	 */
 	function emphasizeShapes(e) {
 		let mmove = new Vec2();
 		cnvParams.cnv2DOverlayContext.clearRect(0, 0, cnvParams.w, cnvParams.h);
@@ -598,6 +693,13 @@
 		renderShapes();
 	}
 	
+	/**
+	 * @function constructionLoop - when picking up any tool except 'move' from the top tools panel this function is being called
+	 * enabling user to construct geometry primitivies primitives on the graphics view (2d or 3d canvas) by mouse events (like click then drag or enter a value)
+	 * @param {Object} e - mouse click event parameter
+	 * @param {String} toolName - the name of default top tool
+	 * @param {String} subTool - the name of the selected subtool in a tool group
+	 */
 	function constructionLoop(e, toolName, subToolName) {
 		let shape,
 			shapeParts,
@@ -606,7 +708,7 @@
 			cnv3DWidth = cnvParams.bothCanvasesWidth - cnvParams.w - 5,
 			shapeConstructor = new shapeConstructorFactory(cnvParams, shapes, shapes_3D, cameraParams, updateCamera)
 				.getConstructor(toolName, subToolName, mdown, mmove);		
-		
+
 		if (!shapeConstructor) {
 			log("no such shape's constructor exists");
 			return;
@@ -670,7 +772,6 @@
 				
 				Shape.prototype.cnv2DOverlayContext.font = "15px Arial";
 				cnvParams.renderer.render(cnvParams.scene, cnvParams.camera);
-				//log(cnvParams.scene.children)
 				renderShapes();
 				return;
 			}
@@ -738,6 +839,14 @@
         }
 	}
 	
+	
+	/**
+	 * @function transformLoop - when picking up 'move' tool this function is being called enabling user to trasform
+	 * geometry primitive or group of the geometry primitives on the graphics view (2d or 3d canvas)
+	 * by mouse events (select shape/group of the connected shapes/primitives by click then drag it to transform)
+	 * @param {Object} e - mouse click event parameter
+	 * @param {String} toolName - the name of default top tool
+	 */
 	function transformLoop(e, toolName) {
 		let mdown = new Point(new Vec2(), 2),
 			mmove = new Point(new Vec2(), 2),
@@ -824,27 +933,32 @@
 		});
 	}
 	
+	/**
+	 * @function offHandlers - removes all mouse events from 2d canvas 
+	 */
 	function offHandlers() {
 		cnvParams.cnv.off("mousedown");
 		cnvParams.cnv.off("mousemove");	
 		cnvParams.cnv.off("mouseup");
-		//cnvParams.cnv3D.off("mousedown");
-		//cnvParams.cnv3D.off("mousemove");
-		//cnvParams.cnv3D.off("mouseup");
 		cnvParams.cnv.off("click");
 		uiParams.subTool.off("click");
 	}
 	
-	//	renders shapes to 2D canvas only
+	/**
+	 * @function renderShapes - renders(draws) shapes to 2D canvas only
+	 */
 	function renderShapes() {
 		shapes.forEach(function(shape, shapeID) {
 			shape.render();
 		});
 	}
 	
+	/**
+	 * @function setup everything needed for the application
+	 */
 	function setup() {
 		setUpGlobalEvents();
-		setupHistory();
+		setupReload();
 		setupTools();
 		setUp3D();
 	}

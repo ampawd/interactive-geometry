@@ -16,7 +16,7 @@
     function GeometryEngine() {};
     
     /** 
-     * finds all connected shapes to constructedShape and connects with them
+     * @function createConnectedShapesGroup - finds all connected shapes to constructedShape and connects with them
      * @param {Object} constructedShape - instance of a base class Shape (can be any of its derived ones)
      */
     GeometryEngine.prototype.createConnectedShapesGroup = function(constructedShape) {
@@ -39,7 +39,7 @@
     };
     
     /** 
-     * recursively finds all shapes connected to shape storing result in connShapes (helper for findConnectedShapesGroup method)
+     * @function _findConnectedShapesGroup - recursively finds all shapes connected to shape storing result in connShapes (helper for findConnectedShapesGroup method)
      * @param {Object} shape - instance of a base class Shape (can be any of its derived ones)
      * @param {Object} picked - plain javascript hash object which indicates what shape is already has been visited/picked - {shapeID : 1}, if shape isn't visited shapeID propery is undefined
      * @param {Map}    connShapes - es6 Map object, stores all found connected shapes for shape
@@ -62,7 +62,7 @@
     };
     
     /** 
-     * return all shapes connected to shape storing result in connShapes internally calling recursive _findConnectedShapesGroup method which does all the job
+     * @function findConnectedShapesGroupreturn - all shapes connected to shape storing result in connShapes internally calling recursive _findConnectedShapesGroup method which does all the job
      * @param {Object} shape - instance of a base class Shape (can be any of its derived ones)
      */
     GeometryEngine.prototype.findConnectedShapesGroup = function(shape) {
@@ -73,7 +73,7 @@
     
     
     /** 
-     * returns map Object of connected shapes by 2D point which belongs to one of picked shape 
+     * @function getConnectedShapesGroupByPoint - returns map Object of connected shapes by 2D point which belongs to one of picked shape 
      * @param {Object} p - point, instance of a base class Shape (but in this case must be Point)
      */
     GeometryEngine.prototype.getConnectedShapesGroupByPoint = function(p) {
@@ -86,7 +86,7 @@
     };
     
     /**
-     * returns id of the shape that has point p 
+     * @function getShapeIdByPoint - returns id of the shape that has point p 
      * @param {Object} p - point, instance of a base class Shape (but in this case must be Point)
      */ 
     GeometryEngine.prototype.getShapeIDByPoint = function(p) {
@@ -107,7 +107,7 @@
     };
     
     /**
-     * checks if point p is a part(contains, inside or on the boundary) of first founded shape, false if no such shape found
+     * @function anyShapeContains - checks if point p is a part(contains, inside or on the boundary) of first founded shape, false if no such shape found
      * @param {Object} p - point, instance of a base class Shape (but in this case must be Point)
      */
     GeometryEngine.prototype.anyShapeContains = function(p) {
@@ -120,7 +120,7 @@
     };
     
     /**
-     * returns first founded shape where point p is one of the boundary points of it, false if no such shape found
+     * @function onAnyShapesBoundary - returns first founded shape where point p is one of the boundary points of it, false if no such shape found
      * @param {Object} p - point, instance of a base class Shape (but in this case must be Point)
      */
     GeometryEngine.prototype.onAnyShapesBoundary = function(p) {
@@ -133,7 +133,7 @@
     };
     
     /**
-     * checks if point p is only inside of any shape,  false otherwise
+     * @function insideAnyShape - checks if point p is only inside of any shape,  false otherwise
      * @param {Object} p - point, instance of a base class Shape (but in this case must be Point)
      */
     GeometryEngine.prototype.insideAnyShape = function(p) {
@@ -146,7 +146,7 @@
     };
     
     /**
-     * checks if point p is only inside of any shape,  false otherwise
+     * @function onAnyPointOfAnyShape - checks if point p is only inside of any shape,  false otherwise
      * @param {Object} p - point, instance of a base class Shape (but in this case must be Point)
      */
     GeometryEngine.prototype.onAnyPointOfAnyShape = function(p) {
@@ -159,7 +159,8 @@
     };
     
     /**
-     * collect all transformation information (user actions with the shape when clicking on canvas) of point p in shapesGroup, example: {line1: {translating: 1, p1: true}}
+     * @function getShapesGroupTransformProps - collect all transformation information (user actions with the shape when clicking on canvas) of point p in shapesGroup,
+     * example: {line1: {translating: 1, p1: true}}
      * @param {Object} p - point, instance of a base class Shape (but in this case must be Point)
      * @param {Boolean} checkForTranslation - boolean value indicates wether it needs to check for translation
      * @param {Map} shapesGroup - es6 map object, stores shapes group for which grouped/single transformations should be applied
@@ -192,7 +193,7 @@
     };
     
     /**
-     * transform all shapes based on transformProps information for each shape
+     * @function transformShapes - transforms all shapes based on transformProps parameter information for each shape
      * @param {Object} transformProps - plain javascript hash pobject, stores all transformation information (user actions with the shape when clicking on canvas) in shapesGroup
      * @param {Vec2} mdown - 2d vector stores mouse coordinates when mouse pressed
      * @param {Vec2} mmove - 2d vector stores mouse coordinates when mouse moving
@@ -222,7 +223,7 @@
     };
     
     /**
-     * fixes point x and y coordinates to perfectly be equal to a first founded one
+     * @function stickPointToFounded - fixes point x and y coordinates to perfectly be equal to a first founded one
      * @param {Point} point - instance of a base class Shape (but in this case must be Point) 
      */
     GeometryEngine.prototype.stickPointToFounded = function(point) {
@@ -239,7 +240,7 @@
     };
     
     /**
-     * emphasizes all shapes points or boundaries that contains point p
+     * @function emphasizeShapes - emphasizes all shapes points or boundaries that contains point p
      * @param {Point} p - instance of a base class Shape (but in this case must be Point) 
      */
     GeometryEngine.prototype.emphasizeShapes = function(p) {
@@ -275,7 +276,7 @@
     };
     
     /**
-     * unemphasizes all shapes points and boundaries, except texts
+     * @function unEmphasizeShapes - unemphasizes all shapes points and boundaries, except text shapes
      */
     GeometryEngine.prototype.unEmphasizeShapes = function() {
         for (let entry of this.shapes) {
@@ -290,7 +291,7 @@
     }
     
     /**
-     * emphasizes only shapes points that contains point p
+     * @function emphasizeShapesPoints - emphasizes only shapes points that contains point p
      * @param {Point} p - instance of a base class Shape (but in this case must be Point) 
      */
     GeometryEngine.prototype.emphasizeShapesPoints = function(p) {
@@ -309,7 +310,7 @@
     };
     
     /**
-     * unemphasizes only shapes points that contains point p
+     * @function unEmphasizeShapesPoints - unemphasizes all shape's points
      */
     GeometryEngine.prototype.unEmphasizeShapesPoints = function() {
         this.cnvParams.ctx.clearRect(0, 0, this.cnvParams.w, this.cnvParams.h);
