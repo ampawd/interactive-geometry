@@ -11,11 +11,11 @@
 	 */
 	function log(a, b) {
 	  if (!a && !b) {
-	     return;
+	    return;
 	  }
 	  if (a && !b) {
-	     console.log(a);
-		return;
+	    console.log(a);
+	    return;
 	  }
 	  if (a && b) {
 	    console.log(a, b);
@@ -32,9 +32,8 @@
 		
 	   let copy = obj.constructor();
 	   for (var attr in obj) {
-	      if (obj.hasOwnProperty(attr)) {
+	     if (obj.hasOwnProperty(attr))
 		   copy[attr] = obj[attr];
-	      }
 	   }
 	   return copy;
 	}
