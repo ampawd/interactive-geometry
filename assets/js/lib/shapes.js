@@ -2588,7 +2588,7 @@
         let textg = new THREE.ShapeGeometry( textShapes );
         let textMesh = new THREE.Mesh( textg, new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } ) ) ;
         return textMesh;
-	}
+    }
     
     /**
      * @function createPoint3D - creates 3d point using THREE.js functionality
