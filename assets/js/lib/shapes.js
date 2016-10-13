@@ -2577,21 +2577,17 @@
      * @returns {Object} - text as THREE.Mesh object
      */
     function createTextTHREE(text, size) {
-		let textShapes = THREE.FontUtils.generateShapes( text,	{
-				'font': 		 'helvetiker',
-				'weight': 		 'normal',
-				'style': 		 'normal',
-				'size': 		 size,
-				'curveSegments': 300
-			}
-		);
-		let textg = new THREE.ShapeGeometry( textShapes );
-		let textMesh = new THREE.Mesh( textg, new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } ) ) ;
-		
-		//let text_geo = new THREE.TextGeometry(text, {size: size, weight: "normal"});		
-		//let text_mat = new THREE.MeshBasicMaterial({color: "black"});		
-		//let textMesh = new THREE.Mesh(text_geo, text_mat);
-		return textMesh;
+        let textShapes = THREE.FontUtils.generateShapes( text,	{
+            'font': 		 'helvetiker',
+            'weight': 		 'normal',
+            'style': 		 'normal',
+            'size': 		 size,
+            'curveSegments': 300
+            }
+        );
+        let textg = new THREE.ShapeGeometry( textShapes );
+        let textMesh = new THREE.Mesh( textg, new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } ) ) ;
+        return textMesh;
 	}
     
     /**
