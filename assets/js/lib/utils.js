@@ -21,7 +21,7 @@
 			console.log(a, b);
 		}
 	}
-	
+
 	/**
 	 * @function clone - deeply clones object
 	 * @returns {Object} cloned one
@@ -38,7 +38,7 @@
 		}
 		return copy;
 	}
-	
+
 	/**
 	 * @function getPropsCountOf - returns count of the object properties
 	 * @param {Object} object - object to count number of properties for
@@ -54,14 +54,14 @@
 	function getActualWinWidth() {
 		return window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth || document.body.offsetWidth;
 	}
-	
+
 	/**
 	 * @function anonymus function - sets up correct requestAnimationFrame for all browsers
 	 */
 	(function() {
 		var lastTime = 0;
 		var vendors = ['ms', 'moz', 'webkit', 'o'];
-		for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+		for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
 			window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
 			window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
 		}
@@ -81,7 +81,7 @@
 			}
 		}
 	}());
-	
+
 	
 	Global.utils = Global.utils || {
 		log : log,
