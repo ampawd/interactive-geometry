@@ -1333,7 +1333,7 @@
         
         this.color = attrs.strokeStyle;
         if (this.container3) {
-            this.container3.remove("child" + this.getID());     //  because of ArrowHelper design it can't be updated - so potential performance bottletneck here are unavoidable
+            this.container3.remove("child" + this.getID());     //  because of ArrowHelper design it can't be updated - thus potential performance bottletnecks here are unavoidable
             let vectorMesh = ArrowedVector(new THREE.Vector3(this.points[0].x - this.cnvW/2, 0, this.points[0].y - this.cnvH/2), 
 					new THREE.Vector3(this.points[1].x - this.cnvW/2, 0, this.points[1].y - this.cnvH/2), this.color, 70, 15);
             vectorMesh.name = "child" + this.getID();
