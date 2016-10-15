@@ -2559,13 +2559,13 @@
         cnvParams.cnv2DOverlayContext.font = "18px Verdana"
         
         let pos = toScreenXY(new THREE.Vector3( length, 0, 0 ), cnvParams.w - 5, cnvParams.h, cnvParams.camera);
-        cnvParams.cnv2DOverlayContext.fillText(length, pos.x, pos.y);        
+        cnvParams.cnv2DOverlayContext.fillText("X = " + length, pos.x, pos.y);        
         
         pos = toScreenXY(new THREE.Vector3( 0, length, 0 ), cnvParams.w - 5, cnvParams.h, cnvParams.camera);
-        cnvParams.cnv2DOverlayContext.fillText(length, pos.x, pos.y);  
+        cnvParams.cnv2DOverlayContext.fillText(" Y = " + length, pos.x, pos.y);  
         
         pos = toScreenXY(new THREE.Vector3( 0, 0, length ), cnvParams.w - 5, cnvParams.h, cnvParams.camera);
-        cnvParams.cnv2DOverlayContext.fillText(length, pos.x, pos.y);   
+        cnvParams.cnv2DOverlayContext.fillText("Z = " + length, pos.x, pos.y);   
         
         cnvParams.cnv2DOverlayContext.restore();
     }
