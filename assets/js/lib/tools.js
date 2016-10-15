@@ -3,13 +3,59 @@
 // TODO:
 // 1. Picking a point on a 3D object when constructing new 3D objects and plane surface
 
+/**
+ * @author: Aram Gevorgyan
+ * @description: Shape's construction
+ * the module/file consists of constructor functions and a shapeConstructorFactory
+ * 
+ * The constructor functions implement an interface for constructing primitives by returning identical object
+ *
+ * example:
+ * 
+ * function getSomeShapeConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
+      // helper variables or functions needed to correctly construct a shape/primitive
+    
+      return {
+        initConstruction: function() {
+    
+        },
+        constructionReady: function() {
+            
+        },
+        constructionStarted: function() {
+            
+        },
+        processConstruction: function(e) {
+           
+        },
+        constructionEnding: function() {
+            
+        },
+        endConstruction: function() {                
+            
+        },
+        constructionNextStep: function() {
+            
+        }
+      };
+   }
+ *
+ *
+ * the returned object interface should be implemented for every geometry tool from the top panel,
+ * this is needed to keep shape's construction logic independent on the concrete shape type
+ * the returned object interface is being used in app.js file/module in the function : constructionLoop
+ *
+ * The shapeConstructorFactory function returns a concrete shape constructor depending on the toolName parameter passed in
+ */
+
 ;(function($, THREE, Global) {
     
+    //  importing needed stuff
     let log = Global.utils.log,
         clone = Global.utils.clone,
         getPropsCountOf = Global.utils.getPropsCountOf,
         Mat2 = Global.math.Mat2,
-		Shape = Global.shapes.Shape,
+        Shape = Global.shapes.Shape,
         Line = Global.shapes.Line,
         Ray = Global.shapes.Ray,
         Segment = Global.shapes.Segment,
@@ -21,7 +67,7 @@
         Point = Global.shapes.Point,
         Text2d = Global.shapes.Text2d,
         createPoint3D = Global.shapes.createPoint3D,
-		Vec2 = Global.math.Vec2,
+        Vec2 = Global.math.Vec2,
         getAngle = Global.math.getAngle,
         radToDeg = Global.math.radToDeg,
         degToRad = Global.math.degToRad,
@@ -31,12 +77,10 @@
         planeThrou3Points = Global.math.planeThrou3Points,
         segment3D = Global.math.segment3D,
         circle3D = Global.math.circle3D,
+        point3DSize = Global.math.point3DSize,
         GeometryEngine = Global.engine.GeometryEngine;
     
-    /**
-     *  @author: Aram Gevorgyan
-     *  @description: Shapes and tools constructors logic
-     */    
+       
     function getMeasuringConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let shape = 0,
             clicks = 0,
@@ -73,18 +117,6 @@
                 }
             },
             constructionReady: function() {
-                //switch (subtoolName) {
-                //    case "ruler":
-                //        let ready = true;
-                //        if (!geometryEngine.anyShapeContains(mdown)) {
-                //            log("not ready");
-                //            ready = false;
-                //            points.pop();
-                //        }
-                //        return ready;
-                //    case "protractor":
-                //        return true;
-                //}
                 return true;
             },
             constructionStarted: function() {
@@ -259,6 +291,26 @@
                     break;
                 }
                 shape.points.push(shape);
+                if (subtoolName === "freepoint") {
+                    let foundedShape = geometryEngine.onAnyShapesBoundary(shape);
+                    if (foundedShape) {
+                        foundedShape.points.push(shape);
+                        foundedShape.boundaryContainsOtherPoints = true;
+                        shape.isOnBoundary = true;
+                        if (foundedShape.className === "Circle") {
+                            let center = foundedShape.getCenter();
+                            let alpha = Math.atan2(shape.y - center.y, shape.x - center.x);                     
+                            shape.set(center.x + foundedShape.R * Math.cos(alpha), center.y + foundedShape.R * Math.sin(alpha));
+                        }                    
+                        //let shapes_3D = foundedShape.shapes_3D, shapeID = shape.getID();                    
+                        //if (foundedShape.className !== "Text2d") {
+                        //    cnvParams.scene.remove( cnvParams.scene.getObjectByName(foundedShape.getID()) );
+                        //    cnvParams.scene.remove( cnvParams.scene.getObjectByName(shapeID) );
+                        //    let shape_3D = foundedShape.createMeshFromThis();
+                        //}
+                        //log( cnvParams.scene.children );
+                    }    
+                }
                 geometryEngine.createConnectedShapesGroup(shape);
                 return shape;
             },
@@ -337,7 +389,6 @@
                         v1 = mdown.copy();
                         fixedLength = parseFloat(prompt("Enter segment length"));                        
                         if (isNaN(fixedLength) || fixedLength < 10) {
-                            //log("NAN");
                             return;
                         }
                         break;
@@ -625,7 +676,7 @@
     function getCircleConstructor(subtoolName, cnvParams, mdown, mmove, shapes) {
         let renderParams = {
             strokeStyle: "#000",
-            fillColor: "#569",
+            fillColor: "",
             lineWidth: 1
         },
         geometryEngine = new GeometryEngine(),
@@ -725,7 +776,6 @@
         geometryEngine = new GeometryEngine(),
         objectsOpacity = 0.6,
         mesh = 0,
-        point3DSize = 10,
         shapeParts = [],
         meshPosition = new THREE.Vector3(),
         radius = 0, numVertices = 3,
