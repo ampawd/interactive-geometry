@@ -41,19 +41,19 @@
         
         
         /**
-         * @property {Object Array} points - an array of points that are wether on the boundary or neccesary for a render current shape
+         * @property {Object Array} points - an array of points that are wether on the boundary or neccesary for a rendering current shape
          */
         this.points = [];
         
         
         /**
-         * @property {Object Map} connectedShapes - of shapes that share same points with this shape
+         * @property {Object Map} connectedShapes - es6 map of shapes that share same points with this shape
          */
         this.connectedShapes = new Map();
         
         
         /**
-         * @property {Object THREE.Object3D} container3 - stores 3d equivalents of 2d points and 2dshape itself
+         * @property {Object THREE.Object3D} container3 - stores 3d equivalents of 2d points and 2d shape
          */
         this.container3 = 0;
         
@@ -92,6 +92,7 @@
          * @property {Number} opacity - shape's opacity amount
          */
         this.opacity = 1.0;
+        
         
         /**
          * @property {String} cnv2DOverlayContext - designations font style
@@ -169,7 +170,7 @@
     
     
     /**
-     * @property {Object Array} designations - stores english alphabet to designate points using any of letter
+     * @property {Object Array} designations - stores english alphabet to designate points using any of these
      */
     Shape.prototype.designations = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
     
